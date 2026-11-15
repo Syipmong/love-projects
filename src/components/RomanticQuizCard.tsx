@@ -79,3 +79,4 @@ export const RomanticQuizCard: React.FC<RomanticQuizCardProps> = ({ quiz }) => {
     </div>
   );
 };
+
