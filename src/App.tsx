@@ -15,6 +15,7 @@ import { CustomizeModal } from './components/CustomizeModal';
 import { MusicPlayer } from './components/MusicPlayer';
 import { ThemeSelector } from './components/ThemeSelector';
 import { DashboardStandalone } from './components/DashboardStandalone';
+import { AnonymousMessageView } from './components/AnonymousMessageView';
 import { fireGrandCelebration } from './utils/confetti';
 import { playCelebrationSound } from './utils/audio';
 import { recordProposalResponse, trackEvent, getProposalBySlug } from './services/api';
@@ -27,7 +28,8 @@ export const App: React.FC = () => {
   const [isDeclined, setIsDeclined] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<AppTheme>(config.theme || 'rose');
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'story' | 'dashboard'>('story');
+  const [viewMode, setViewMode] = useState<'story' | 'dashboard' | 'anonymous'>('story');
+  const [anonymousHandle, setAnonymousHandle] = useState('beloved');
   const [proposalId, setProposalId] = useState('default');
 
   // Anti-skip unlock states for each chapter
@@ -138,6 +140,21 @@ export const App: React.FC = () => {
         const stepParam = params.get('ch');
         const sinceParam = params.get('since');
         const themeParam = params.get('theme') as AppTheme;
+
+        const isAnonymouxDomain = window.location.hostname.includes('anonymoux');
+        const anonParam = params.get('anon');
+        const isUserPath = window.location.pathname.startsWith('/u/');
+
+        // If Anonymoux domain or anonymous message link
+        if (isAnonymouxDomain || anonParam || isUserPath) {
+          let handle = anonParam || '';
+          if (!handle && isUserPath) {
+            handle = window.location.pathname.replace(/^\/u\//, '').replace(/\/$/, '');
+          }
+          setAnonymousHandle(handle || 'beloved');
+          setViewMode('anonymous');
+          return;
+        }
 
         // If URL requests dashboard directly
         if (dashboardParam === 'true' || window.location.pathname === '/dashboard') {
@@ -260,6 +277,16 @@ export const App: React.FC = () => {
       : currentTheme === 'lavender'
       ? 'bg-theme-lavender'
       : 'bg-theme-rose';
+
+  // If in Anonymous Secret Message Mode (anonymoux)
+  if (viewMode === 'anonymous') {
+    return (
+      <AnonymousMessageView
+        handle={anonymousHandle || 'beloved'}
+        onOpenDashboard={() => setViewMode('dashboard')}
+      />
+    );
+  }
 
   // If in Dashboard Standalone Page View
   if (viewMode === 'dashboard') {

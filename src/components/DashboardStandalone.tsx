@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Heart,
   Share2,
@@ -24,13 +24,10 @@ import {
   Gift,
   MessageCircle,
   Printer,
-  Send,
   Trash2,
   Copy,
   ExternalLink,
   Lock,
-  ShieldCheck,
-  CheckCheck,
   MessageSquare
 } from 'lucide-react';
 import { ImagePickerModal } from './ImagePickerModal';
@@ -697,7 +694,237 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
               </div>
             )}
 
-            {/* TAB 2: FULL STORY & MESSAGES CUSTOMIZER */}
+            {/* TAB: ANONYMOUX INBOX & SOCIAL SHARING (anonymoux.aetechlabs.com) */}
+            {activeTab === 'anonymous' && (
+              <div className="space-y-6">
+                {/* Link & Social Share Card */}
+                <div className="bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900 text-white p-6 sm:p-8 rounded-3xl border border-purple-500/30 shadow-xl relative overflow-hidden">
+                  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold text-purple-200 border border-white/10 mb-2">
+                        <Lock className="w-3.5 h-3.5 text-purple-400" />
+                        <span>anonymoux.aetechlabs.com</span>
+                      </div>
+                      <h3 className="text-xl sm:text-2xl font-bold font-romantic text-white">
+                        Your Anonymous Secret Message Link
+                      </h3>
+                      <p className="text-xs sm:text-sm text-purple-200/80 max-w-lg mt-1">
+                        Share this link on your Instagram Story, WhatsApp, Snapchat, or X. Anyone can send you honest confessions, sweet compliments, and secret messages anonymously!
+                      </p>
+
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs font-bold bg-white/15 px-3 py-2 rounded-xl text-purple-100 border border-white/20 select-all">
+                          https://anonymoux.aetechlabs.com/u/{currentUser?.handle || handleInput || 'user'}
+                        </span>
+                        <button
+                          onClick={copyAnonymousLink}
+                          className="px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
+                        >
+                          {copiedAnonLink ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+                          <span>{copiedAnonLink ? 'Link Copied!' : 'Copy Link'}</span>
+                        </button>
+                        <a
+                          href={`/?anon=${currentUser?.handle || handleInput || 'user'}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold flex items-center gap-1 border border-white/15 cursor-pointer"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Preview Page</span>
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Change Username Handle */}
+                    <div className="bg-white/10 p-4 rounded-2xl border border-white/15 max-w-xs w-full">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-purple-200 mb-1.5">
+                        Your Custom Handle
+                      </label>
+                      <form onSubmit={handleSaveHandle} className="flex gap-2">
+                        <div className="relative flex-1">
+                          <span className="absolute left-2.5 top-2 text-xs text-purple-300 font-bold">@</span>
+                          <input
+                            type="text"
+                            value={handleInput}
+                            onChange={(e) => setHandleInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                            placeholder="username"
+                            className="w-full pl-6 pr-2 py-1.5 bg-white/20 rounded-lg text-xs font-bold text-white placeholder:text-purple-300 border border-white/20 focus:outline-hidden"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={isSavingHandle}
+                          className="px-3 py-1.5 bg-white text-purple-950 font-bold rounded-lg text-xs hover:bg-purple-100 cursor-pointer disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                      </form>
+                      {handleStatusMsg && (
+                        <p className="text-[11px] text-emerald-300 mt-1.5 font-medium">{handleStatusMsg}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Social Media Sharing Strip */}
+                  <div className="mt-6 pt-5 border-t border-white/15">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-purple-300 block mb-3">
+                      Share Instantly To Social Platforms:
+                    </span>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                      {/* Instagram */}
+                      <button
+                        onClick={() => {
+                          copyAnonymousLink();
+                          setShowSocialModal('instagram');
+                        }}
+                        className="p-3 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:opacity-90 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <span>📸 Instagram Story</span>
+                      </button>
+
+                      {/* WhatsApp */}
+                      <button
+                        onClick={() => {
+                          const url = `https://anonymoux.aetechlabs.com/u/${currentUser?.handle || handleInput || 'user'}`;
+                          const text = encodeURIComponent(`Send me anonymous secret messages on Anonymoux! 🤫💌\n${url}`);
+                          window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+                        }}
+                        className="p-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <span>💬 WhatsApp</span>
+                      </button>
+
+                      {/* Snapchat */}
+                      <button
+                        onClick={() => {
+                          copyAnonymousLink();
+                          setShowSocialModal('snapchat');
+                        }}
+                        className="p-3 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-900 text-xs font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <span>👻 Snapchat Story</span>
+                      </button>
+
+                      {/* X (Twitter) */}
+                      <button
+                        onClick={() => {
+                          const url = `https://anonymoux.aetechlabs.com/u/${currentUser?.handle || handleInput || 'user'}`;
+                          const text = encodeURIComponent(`Send me secret anonymous messages on Anonymoux! 💌👀\n${url}`);
+                          window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+                        }}
+                        className="p-3 rounded-2xl bg-black hover:bg-slate-900 text-white text-xs font-bold flex items-center justify-center gap-2 border border-white/20 shadow-md cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <span>𝕏 Post</span>
+                      </button>
+
+                      {/* Facebook */}
+                      <button
+                        onClick={() => {
+                          const url = encodeURIComponent(`https://anonymoux.aetechlabs.com/u/${currentUser?.handle || handleInput || 'user'}`);
+                          window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+                        }}
+                        className="p-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <span>📘 Facebook</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Messages Feed */}
+                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900 font-romantic flex items-center gap-2">
+                        <MessageSquare className="w-5 h-5 text-purple-600" />
+                        <span>Received Secret Messages ({anonymousMessages.length})</span>
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        Messages sent to your unique link arrive here in real time.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={loadAnonymousInbox}
+                      className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${loadingAnonymous ? 'animate-spin' : ''}`} />
+                      <span>Refresh</span>
+                    </button>
+                  </div>
+
+                  {anonymousMessages.length === 0 ? (
+                    <div className="text-center py-12 px-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mx-auto">
+                        <Lock className="w-6 h-6" />
+                      </div>
+                      <h5 className="font-bold text-slate-800 text-sm">Your Anonymous Inbox Is Empty</h5>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                        Copy your link above and add it to your Instagram story, WhatsApp status, or bio to start receiving anonymous messages!
+                      </p>
+                      <button
+                        onClick={copyAnonymousLink}
+                        className="px-5 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md cursor-pointer"
+                      >
+                        {copiedAnonLink ? 'Link Copied!' : 'Copy Your Link'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {anonymousMessages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className="p-5 rounded-3xl bg-gradient-to-br from-purple-50/50 via-rose-50/30 to-white border-2 border-purple-100 hover:border-purple-200 shadow-xs flex flex-col justify-between space-y-4 transition-all"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full">
+                                {msg.prompt_category.replace(/_/g, ' ')}
+                              </span>
+                              <span className="text-[11px] text-slate-400 font-mono">
+                                {new Date(msg.created_at).toLocaleDateString()} • {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+
+                            <p className="text-slate-800 text-sm sm:text-base font-semibold italic leading-relaxed pt-1">
+                              "{msg.message}"
+                            </p>
+
+                            {msg.sender_hint && (
+                              <p className="text-[11px] text-purple-700 mt-2 bg-purple-50 p-2 rounded-xl border border-purple-100 font-medium">
+                                🔍 Sender hint: <em>"{msg.sender_hint}"</em>
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="pt-2 border-t border-purple-100 flex items-center justify-between gap-2">
+                            <button
+                              onClick={() => copyStoryReplyText(msg)}
+                              className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all active:scale-95"
+                              title="Copy formatted text to share on Instagram / Snapchat story"
+                            >
+                              <Share2 className="w-3.5 h-3.5" />
+                              <span>{copiedStoryCardId === msg.id ? 'Story Text Copied!' : 'Share Reply To Story'}</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleDeleteAnonMessage(msg.id)}
+                              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
+                              title="Delete message"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: FULL STORY & MESSAGES CUSTOMIZER */}
             {activeTab === 'editor' && selectedProposal && (
               <form onSubmit={handleSaveCustomization} className="space-y-6">
                 <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-slate-200">
@@ -1115,14 +1342,17 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                     />
                   </div>
 
-                  {/* Quick stats (4 columns) */}
+                  {/* Quick stats (4 columns) - Layman friendly terms */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                     <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 text-center shadow-xs">
                       <div className="text-2xl sm:text-3xl font-black font-romantic text-slate-800">
                         {analyticsData?.totalEvents || 0}
                       </div>
-                      <div className="text-[11px] font-bold text-slate-500 uppercase mt-1">
-                        Total Interactions
+                      <div className="text-[11px] font-bold text-slate-700 uppercase mt-1">
+                        Total Actions Taken
+                      </div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">
+                        Taps, peeks & page turns
                       </div>
                     </div>
 
@@ -1130,8 +1360,11 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                       <div className="text-2xl sm:text-3xl font-black font-romantic text-rose-600">
                         {analyticsData?.teaseAttempts || 0}
                       </div>
-                      <div className="text-[11px] font-bold text-rose-500 uppercase mt-1">
-                        "NO" Button Chases
+                      <div className="text-[11px] font-bold text-rose-600 uppercase mt-1">
+                        Times She Clicked "NO"
+                      </div>
+                      <div className="text-[10px] text-rose-400 mt-0.5">
+                        Button playfully ran away!
                       </div>
                     </div>
 
@@ -1139,8 +1372,11 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                       <div className="text-2xl sm:text-3xl font-black font-romantic text-amber-600">
                         {hesitationEvents.length}
                       </div>
-                      <div className="text-[11px] font-bold text-amber-500 uppercase mt-1">
-                        Inaction & Pauses
+                      <div className="text-[11px] font-bold text-amber-600 uppercase mt-1">
+                        Pauses & Inaction
+                      </div>
+                      <div className="text-[10px] text-amber-500 mt-0.5">
+                        Lingered over 25s reading
                       </div>
                     </div>
 
@@ -1149,7 +1385,10 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                         Ch. {maxChapter + 1}
                       </div>
                       <div className="text-[11px] font-bold text-emerald-600 uppercase mt-1">
-                        Progress (of 6)
+                        Story Chapters Read
+                      </div>
+                      <div className="text-[10px] text-emerald-500 mt-0.5">
+                        Reached Chapter {maxChapter + 1} of 6
                       </div>
                     </div>
                   </div>
@@ -1159,10 +1398,10 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                         <AlertTriangle className="w-4 h-4 text-amber-500" />
-                        <span>Hesitation & Inaction Signals (Viewing Without Clicking)</span>
+                        <span>Moments She Paused & Contemplated (Reading Without Clicking)</span>
                       </h4>
                       <span className="text-[11px] font-semibold text-slate-400">
-                        {hesitationEvents.length} detected
+                        {hesitationEvents.length} pauses recorded
                       </span>
                     </div>
 
@@ -1197,7 +1436,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                       </div>
                     ) : (
                       <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center">
-                        ✨ No extended inaction detected yet — she moved smoothly through unlocked chapters without lingering!
+                        ✨ Continuous smooth engagement — she explored unlocked chapters without long pauses!
                       </div>
                     )}
                   </div>
@@ -1208,7 +1447,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                     <div className="bg-white p-5 rounded-3xl border border-slate-200 space-y-3 shadow-xs">
                       <h4 className="text-xs font-bold text-purple-600 uppercase tracking-wider flex items-center gap-1.5">
                         <HelpCircle className="w-4 h-4" />
-                        <span>Romantic Mini-Quiz Response</span>
+                        <span>Her Answer to Your Romantic Question</span>
                       </h4>
 
                       {latestQuiz ? (
@@ -1220,14 +1459,14 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                             </p>
                           </div>
                           <div>
-                            <span className="text-[10px] font-bold text-purple-600 uppercase">Her Selected Answer</span>
+                            <span className="text-[10px] font-bold text-purple-600 uppercase">What She Chose</span>
                             <p className="font-bold text-purple-700 text-sm mt-0.5">
                               👉 "{latestQuiz.selected_option || latestQuiz.option}"
                             </p>
                           </div>
                           {latestQuiz.reaction && (
                             <div>
-                              <span className="text-[10px] font-bold text-slate-500 uppercase">Her Prompt Reaction</span>
+                              <span className="text-[10px] font-bold text-slate-500 uppercase">Response Reaction Shown To Her</span>
                               <p className="text-slate-600 italic mt-0.5">
                                 "{latestQuiz.reaction || latestQuiz.response}"
                               </p>
@@ -1236,7 +1475,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                         </div>
                       ) : (
                         <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-400 text-center">
-                          Mini-quiz has not been answered yet.
+                          Romantic question has not been answered yet.
                         </div>
                       )}
                     </div>
@@ -1250,19 +1489,19 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
 
                       <div className="space-y-2 text-xs">
                         <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                          <span className="text-slate-600">Polaroid secret notes revealed:</span>
+                          <span className="text-slate-600">Secret notes tapped on polaroids:</span>
                           <span className="font-bold text-rose-600 font-mono">
                             {polaroidsOpened.length} notes
                           </span>
                         </div>
                         <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                          <span className="text-slate-600">Story milestones read:</span>
+                          <span className="text-slate-600">Story memories read:</span>
                           <span className="font-bold text-blue-600 font-mono">
-                            {milestonesViewed.length} moments
+                            {milestonesViewed.length} memories
                           </span>
                         </div>
                         <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                          <span className="text-slate-600">Love coupons claimed:</span>
+                          <span className="text-slate-600">Love vouchers claimed:</span>
                           <span className="font-bold text-emerald-600 font-mono">
                             {vouchersClaimed.length} coupons
                           </span>
@@ -1276,64 +1515,70 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                         <Clock className="w-4 h-4 text-rose-500" />
-                        <span>Chronological Event Activity Feed</span>
+                        <span>Live Activity Feed (Every Action In Order)</span>
                       </h4>
                       <span className="text-xs text-slate-400 font-medium">
-                        Showing all {timeline.length} events
+                        Showing all {timeline.length} actions
                       </span>
                     </div>
 
                     <div className="max-h-96 overflow-y-auto space-y-2 bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200 text-xs">
                       {timeline.length > 0 ? (
                         timeline.map((ev: any) => {
-                          // Format nice labels and badge styles
                           let icon = <Clock className="w-4 h-4 text-slate-500" />;
                           let title = ev.event_type.replace(/_/g, ' ').toUpperCase();
                           let subtitle: string | null = null;
                           let badgeBg = 'bg-white border-slate-200';
 
-                          if (ev.event_type === 'no_button_evaded') {
+                          if (ev.event_type === 'page_view') {
+                            icon = <Eye className="w-4 h-4 text-rose-500" />;
+                            badgeBg = 'bg-rose-50 border-rose-200';
+                            title = `Opened Your Proposal Story Link`;
+                            subtitle = `She visited your unique link and arrived at Chapter 1`;
+                          } else if (ev.event_type === 'no_button_evaded') {
                             icon = <Heart className="w-4 h-4 text-rose-500" />;
                             badgeBg = 'bg-rose-50 border-rose-200';
-                            title = `Dodged "NO" Button (Chase #${ev.data_json?.tease_attempts || '?'})`;
+                            title = `Tried To Click "NO" — Button Playfully Ran Away! (Chase #${ev.data_json?.tease_attempts || '?'})`;
                             if (ev.data_json?.speech_reaction) {
-                              subtitle = `Reaction: "${ev.data_json?.speech_reaction}"`;
+                              subtitle = `Playful reaction: "${ev.data_json?.speech_reaction}"`;
                             }
                           } else if (ev.event_type === 'inaction_dwell') {
                             icon = <AlertTriangle className="w-4 h-4 text-amber-500" />;
                             badgeBg = 'bg-amber-50 border-amber-200';
-                            title = `Inaction / Hesitation on ${ev.data_json?.chapter_name || `Chapter ${ev.chapter + 1}`}`;
-                            subtitle = `Paused for ~${ev.data_json?.idle_seconds || 25}s (${ev.data_json?.status || 'Lingering'})`;
+                            title = `Paused & Contemplated (${ev.data_json?.chapter_name || `Chapter ${ev.chapter + 1}`})`;
+                            subtitle = `She lingered for ~${ev.data_json?.idle_seconds || 25}s reading carefully (${ev.data_json?.status || 'Thinking'})`;
                           } else if (ev.event_type === 'quiz_answered') {
                             icon = <HelpCircle className="w-4 h-4 text-purple-500" />;
                             badgeBg = 'bg-purple-50 border-purple-200';
-                            title = `Answered Mini-Quiz: Selected "${ev.data_json?.selected_option || ev.data_json?.option}"`;
+                            title = `Answered Your Question: Selected "${ev.data_json?.selected_option || ev.data_json?.option}"`;
                             if (ev.data_json?.reaction) {
-                              subtitle = `Shown: "${ev.data_json?.reaction}"`;
+                              subtitle = `Shown to her: "${ev.data_json?.reaction}"`;
                             }
                           } else if (ev.event_type === 'polaroid_opened') {
                             icon = <Camera className="w-4 h-4 text-pink-500" />;
                             badgeBg = 'bg-pink-50 border-pink-200';
-                            title = `Unlocked Polaroid Secret Note: "${ev.data_json?.title}"`;
+                            title = `Tapped Secret Note on Polaroid: "${ev.data_json?.title}"`;
                             if (ev.data_json?.secret_note_revealed) {
-                              subtitle = `Note revealed: "${ev.data_json?.secret_note_revealed}"`;
+                              subtitle = `Secret note revealed: "${ev.data_json?.secret_note_revealed}"`;
                             }
                           } else if (ev.event_type === 'milestone_viewed') {
                             icon = <Compass className="w-4 h-4 text-blue-500" />;
                             badgeBg = 'bg-blue-50 border-blue-200';
-                            title = `Explored Milestone: "${ev.data_json?.title}"`;
+                            title = `Read Memory Milestone: "${ev.data_json?.title}"`;
                           } else if (ev.event_type === 'heart_tapped') {
                             icon = <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />;
                             badgeBg = 'bg-rose-50 border-rose-200';
-                            title = `Tapped Heart Pulse (${ev.data_json?.heart_beats || ev.data_json?.heartPumps} beats)`;
+                            title = `Tapped Your Beating Heart (${ev.data_json?.heart_beats || ev.data_json?.heartPumps} beats)`;
                           } else if (ev.event_type === 'envelope_opened') {
                             icon = <BookOpen className="w-4 h-4 text-rose-500" />;
                             badgeBg = 'bg-rose-50 border-rose-200';
-                            title = `Opened Proposal Letter Envelope`;
+                            title = `Unsealed The Opening Love Letter`;
+                            subtitle = 'She tapped the wax seal on Chapter 1';
                           } else if (ev.event_type === 'story_started') {
                             icon = <BookOpen className="w-4 h-4 text-emerald-500" />;
                             badgeBg = 'bg-emerald-50 border-emerald-200';
-                            title = `Began Romantic Story Walkthrough`;
+                            title = `Started Walking Through Your Memories`;
+                            subtitle = 'She clicked "Walk Through Our Story" to begin';
                           } else if (ev.event_type === 'chapter_navigated') {
                             icon = <ArrowRight className="w-4 h-4 text-slate-500" />;
                             badgeBg = 'bg-slate-100 border-slate-200';
@@ -1341,23 +1586,24 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                           } else if (ev.event_type === 'proposal_accepted') {
                             icon = <Heart className="w-4 h-4 text-emerald-600 fill-emerald-600" />;
                             badgeBg = 'bg-emerald-100 border-emerald-300';
-                            title = `🎉 SAID YES! Proposal Accepted!`;
+                            title = `🎉 SHE SAID YES TO YOUR PROPOSAL! ❤️`;
+                            subtitle = 'Proposal officially accepted and celebrated!';
                           } else if (ev.event_type === 'proposal_declined') {
                             icon = <Heart className="w-4 h-4 text-slate-500" />;
                             badgeBg = 'bg-slate-100 border-slate-300';
-                            title = `Respectfully Declined`;
+                            title = `Responded: Respectful Decline 🕊️`;
                           } else if (ev.event_type === 'love_voucher_claimed') {
                             icon = <Gift className="w-4 h-4 text-amber-500" />;
                             badgeBg = 'bg-amber-50 border-amber-200';
-                            title = `Claimed Love Coupon: "${ev.data_json?.voucher_title || ev.data_json?.voucher_id}"`;
+                            title = `Claimed Date Coupon: "${ev.data_json?.voucher_title || ev.data_json?.voucher_id}"`;
                           } else if (ev.event_type === 'certificate_printed') {
                             icon = <Printer className="w-4 h-4 text-sky-500" />;
                             badgeBg = 'bg-sky-50 border-sky-200';
-                            title = `Printed / Saved Official Love Certificate`;
+                            title = `Saved / Printed Official Love Certificate`;
                           } else if (ev.event_type === 'whatsapp_alert_clicked') {
                             icon = <MessageCircle className="w-4 h-4 text-emerald-600" />;
                             badgeBg = 'bg-emerald-50 border-emerald-300';
-                            title = `Clicked WhatsApp Button to Message You!`;
+                            title = `Clicked WhatsApp Button To Text You Directly!`;
                           }
 
                           return (
@@ -1388,7 +1634,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                         })
                       ) : (
                         <div className="text-slate-400 text-center py-8 text-xs space-y-1">
-                          <p className="font-semibold text-slate-600">No telemetry activity recorded yet</p>
+                          <p className="font-semibold text-slate-600">No actions recorded yet</p>
                           <p className="text-[11px]">
                             Share your link with your partner to start tracking every tap, choice, and reaction live!
                           </p>
@@ -1402,6 +1648,66 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
           </div>
         )}
       </main>
+
+      {/* Social Media Guide Modal (Instagram / Snapchat) */}
+      {showSocialModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <h4 className="font-bold text-slate-900 font-romantic text-lg">
+                {showSocialModal === 'instagram' ? '📸 Share to Instagram Story' : '👻 Share to Snapchat Story'}
+              </h4>
+              <button
+                onClick={() => setShowSocialModal(null)}
+                className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center gap-2 text-emerald-800 text-xs font-semibold">
+              <Check className="w-4 h-4 text-emerald-600" />
+              <span>Your Anonymoux link has already been copied to your clipboard!</span>
+            </div>
+
+            <div className="space-y-2.5 text-xs text-slate-600">
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50">
+                <span className="w-5 h-5 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">1</span>
+                <p>Open {showSocialModal === 'instagram' ? 'Instagram' : 'Snapchat'} and tap <strong>New Story (+)</strong>.</p>
+              </div>
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50">
+                <span className="w-5 h-5 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">2</span>
+                <p>Tap the <strong>Stickers</strong> icon and select <strong>Link 🔗</strong>.</p>
+              </div>
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50">
+                <span className="w-5 h-5 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">3</span>
+                <p>Paste your link and write sticker text: <em>"Send me anonymous secret messages! 🤫💌"</em></p>
+              </div>
+              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50">
+                <span className="w-5 h-5 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">4</span>
+                <p>Publish your story and watch secret messages roll into your inbox!</p>
+              </div>
+            </div>
+
+            <div className="pt-2 flex gap-2">
+              <a
+                href={showSocialModal === 'instagram' ? 'https://instagram.com' : 'https://snapchat.com'}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 py-3 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-bold rounded-xl text-center text-xs shadow-md cursor-pointer"
+              >
+                Open {showSocialModal === 'instagram' ? 'Instagram' : 'Snapchat'}
+              </a>
+              <button
+                onClick={() => setShowSocialModal(null)}
+                className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Pexels Photo Search & Selection Modal */}
       {activePickerIndex !== null && (

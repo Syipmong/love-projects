@@ -7,10 +7,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   RefreshCw,
-  Share2,
-  Lock,
-  MessageCircle,
-  HelpCircle
+  Lock
 } from 'lucide-react';
 import { sendAnonymousMessage, getAnonymousUserInfo } from '../services/api';
 import { playPopSound } from '../utils/audio';
