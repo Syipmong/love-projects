@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/config.ts","./src/main.tsx","./src/types.ts","./src/components/celebrationview.tsx","./src/components/customizemodal.tsx","./src/components/floatinghearts.tsx","./src/components/musicplayer.tsx","./src/components/proposalcard.tsx","./src/utils/audio.ts","./src/utils/confetti.ts"],"version":"5.9.3"}
