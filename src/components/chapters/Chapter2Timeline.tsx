@@ -10,22 +10,33 @@ import { trackEvent } from '../../services/api';
 interface Chapter2TimelineProps {
   config: ProposalConfig;
   onUnlockNext: (unlocked: boolean) => void;
+  proposalId?: string;
 }
 
-export const Chapter2Timeline: React.FC<Chapter2TimelineProps> = ({ config, onUnlockNext }) => {
+export const Chapter2Timeline: React.FC<Chapter2TimelineProps> = ({ config, onUnlockNext, proposalId = 'default' }) => {
   const [activeMilestone, setActiveMilestone] = useState<StoryMilestone>(
     config.storyMilestones[0]
   );
   const [visitedIds, setVisitedIds] = useState<string[]>([config.storyMilestones[0].id]);
 
   useEffect(() => {
-    trackEvent('milestone_viewed', 1, { milestoneId: activeMilestone.id, title: activeMilestone.title });
+    trackEvent(
+      'milestone_viewed',
+      1,
+      { milestoneId: activeMilestone.id, title: activeMilestone.title, tag: activeMilestone.tag },
+      proposalId
+    );
   }, []);
 
   const handleSelectMilestone = (m: StoryMilestone) => {
     playPopSound();
     setActiveMilestone(m);
-    trackEvent('milestone_viewed', 1, { milestoneId: m.id, title: m.title });
+    trackEvent(
+      'milestone_viewed',
+      1,
+      { milestoneId: m.id, title: m.title, tag: m.tag },
+      proposalId
+    );
 
     if (!visitedIds.includes(m.id)) {
       const updated = [...visitedIds, m.id];

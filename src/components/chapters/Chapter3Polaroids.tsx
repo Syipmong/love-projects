@@ -8,16 +8,25 @@ import { trackEvent } from '../../services/api';
 interface Chapter3PolaroidsProps {
   config: ProposalConfig;
   onUnlockNext: (unlocked: boolean) => void;
+  proposalId?: string;
 }
 
-export const Chapter3Polaroids: React.FC<Chapter3PolaroidsProps> = ({ config, onUnlockNext }) => {
+export const Chapter3Polaroids: React.FC<Chapter3PolaroidsProps> = ({ config, onUnlockNext, proposalId = 'default' }) => {
   const [selectedPolaroid, setSelectedPolaroid] = useState<MemoryPolaroid | null>(null);
   const [openedIds, setOpenedIds] = useState<string[]>([]);
 
   const handleSelect = (p: MemoryPolaroid) => {
     playPopSound();
-    setSelectedPolaroid(selectedPolaroid?.id === p.id ? null : p);
-    trackEvent('polaroid_opened', 2, { polaroidId: p.id, title: p.title });
+    const isOpening = selectedPolaroid?.id !== p.id;
+    setSelectedPolaroid(isOpening ? p : null);
+    if (isOpening) {
+      trackEvent(
+        'polaroid_opened',
+        2,
+        { polaroidId: p.id, title: p.title, secret_note_revealed: p.secretNote },
+        proposalId
+      );
+    }
 
     if (!openedIds.includes(p.id)) {
       const updated = [...openedIds, p.id];
