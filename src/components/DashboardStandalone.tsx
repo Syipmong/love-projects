@@ -20,6 +20,7 @@ import {
   Search
 } from 'lucide-react';
 import { ImagePickerModal } from './ImagePickerModal';
+import { CreateProposalModal } from './CreateProposalModal';
 import {
   loginUser,
   registerUser,
@@ -64,6 +65,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
   const [editConfig, setEditConfig] = useState<ProposalConfig>(DEFAULT_CONFIG);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [activePickerIndex, setActivePickerIndex] = useState<number | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Analytics State
   const [analyticsData, setAnalyticsData] = useState<any>(null);
@@ -147,15 +149,15 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
     setSelectedProposal(null);
   };
 
-  const handleCreateNewProposal = async () => {
-    const partner = prompt("Enter your partner's name / nickname (e.g. Maya):");
-    if (!partner) return;
-    const sender = prompt("Enter your name / nickname:", currentUser?.name || "Yours Truly") || "Yours Truly";
+  const handleCreateNewProposal = () => {
+    setIsCreateModalOpen(true);
+  };
 
+  const handleConfirmCreateProposal = async (partner: string, sender: string, question: string) => {
     const res = await createNewProposal({
       partner_name: partner.trim(),
       sender_name: sender.trim(),
-      question: "Will you be my girlfriend?",
+      question: question.trim() || "Will you be my girlfriend?",
       config_json: DEFAULT_CONFIG as unknown as Record<string, unknown>
     });
 
@@ -993,6 +995,14 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
           }}
         />
       )}
+
+      {/* Create New Proposal In-App Modal (Zero native alerts/prompts) */}
+      <CreateProposalModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        defaultSenderName={currentUser?.name || 'Yours Truly'}
+        onSubmit={handleConfirmCreateProposal}
+      />
     </div>
   );
 };
