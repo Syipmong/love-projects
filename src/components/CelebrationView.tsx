@@ -22,23 +22,42 @@ import { DynamicIcon } from './IconHelper';
 import { SecretDateSurpriseVault } from './SecretDateSurpriseVault';
 import { fireGrandCelebration } from '../utils/confetti';
 import { playPopSound } from '../utils/audio';
+import { trackEvent } from '../services/api';
 
 interface CelebrationViewProps {
   config: ProposalConfig;
   onReset: () => void;
   onCreateOwn?: () => void;
+  proposalId?: string;
 }
 
-export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onReset, onCreateOwn }) => {
+export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onReset, onCreateOwn, proposalId = 'default' }) => {
   const [isLetterOpen, setIsLetterOpen] = useState(false);
   const [claimedCoupons, setClaimedCoupons] = useState<string[]>([]);
   const [copiedLink, setCopiedLink] = useState(false);
 
   const toggleCoupon = (id: string) => {
     playPopSound();
+    const willClaim = !claimedCoupons.includes(id);
     setClaimedCoupons((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     );
+
+    if (willClaim) {
+      const couponObj = config.loveCoupons.find((c) => c.id === id);
+      trackEvent(
+        'love_voucher_claimed',
+        5,
+        { voucher_id: id, voucher_title: couponObj?.title || id },
+        proposalId
+      );
+    }
+  };
+
+  const handleOpenLetter = () => {
+    playPopSound();
+    setIsLetterOpen(true);
+    trackEvent('love_letter_opened', 5, { from: config.senderName }, proposalId);
   };
 
   const copyShareLink = () => {
@@ -50,11 +69,13 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
 
   const handlePrintCertificate = () => {
     playPopSound();
+    trackEvent('certificate_printed', 5, { partner: config.partnerName }, proposalId);
     window.print();
   };
 
   const sendWhatsAppNotification = () => {
     playPopSound();
+    trackEvent('whatsapp_alert_clicked', 5, { sender: config.senderName, partner: config.partnerName }, proposalId);
     const phone = config.whatsappPhone?.replace(/[^0-9]/g, '') || '';
     const text = encodeURIComponent(`Hey ${config.senderName}... I just walked through our story, and I said YES! ❤️🥰`);
     const waUrl = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`;
@@ -228,8 +249,12 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
         <div className="flex flex-col items-center">
           <motion.button
             onClick={() => {
-              playPopSound();
-              setIsLetterOpen(!isLetterOpen);
+              if (!isLetterOpen) {
+                handleOpenLetter();
+              } else {
+                playPopSound();
+                setIsLetterOpen(false);
+              }
             }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

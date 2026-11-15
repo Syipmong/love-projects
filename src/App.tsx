@@ -34,6 +34,96 @@ export const App: React.FC = () => {
   const [canProceedChapter1, setCanProceedChapter1] = useState(false);
   const [canProceedChapter2, setCanProceedChapter2] = useState(false);
   const [canProceedChapter3, setCanProceedChapter3] = useState(false);
+  const [totalTeases, setTotalTeases] = useState(0);
+
+  // Inaction & Dwell Time Tracker: Records when the partner pauses / hesitates on any chapter
+  useEffect(() => {
+    if (viewMode !== 'story') return;
+
+    const chapterTitles = [
+      'Chapter 1: The Sealed Letter',
+      'Chapter 2: Milestones in My Memory',
+      'Chapter 3: Polaroid Memories',
+      'Chapter 4: What I’ve Wanted To Tell You',
+      'Chapter 5: The Proposal Question',
+      'Chapter 6: Celebration & Vows'
+    ];
+
+    const currentTitle = chapterTitles[currentChapter] || `Chapter ${currentChapter + 1}`;
+    let secondsOnChapter = 0;
+    let secondsIdle = 0;
+    let loggedHesitation25s = false;
+    let loggedHesitation60s = false;
+    let loggedLinger120s = false;
+
+    const resetIdleTimer = () => {
+      secondsIdle = 0;
+    };
+
+    window.addEventListener('mousemove', resetIdleTimer, { passive: true });
+    window.addEventListener('touchstart', resetIdleTimer, { passive: true });
+    window.addEventListener('scroll', resetIdleTimer, { passive: true });
+    window.addEventListener('click', resetIdleTimer, { passive: true });
+
+    const interval = setInterval(() => {
+      secondsOnChapter += 5;
+      secondsIdle += 5;
+
+      // Noticeable hesitation: 25s without touch/click/scroll
+      if (secondsIdle >= 25 && !loggedHesitation25s && secondsOnChapter >= 25) {
+        loggedHesitation25s = true;
+        trackEvent(
+          'inaction_dwell',
+          currentChapter,
+          {
+            chapter_name: currentTitle,
+            idle_seconds: secondsIdle,
+            chapter_duration: secondsOnChapter,
+            status: 'Hesitating / viewing without clicking'
+          },
+          proposalId
+        );
+      }
+      // Deep hesitation: 60s idle
+      else if (secondsIdle >= 60 && !loggedHesitation60s) {
+        loggedHesitation60s = true;
+        trackEvent(
+          'inaction_dwell',
+          currentChapter,
+          {
+            chapter_name: currentTitle,
+            idle_seconds: secondsIdle,
+            chapter_duration: secondsOnChapter,
+            status: 'Deep hesitation / Paused for over 1 minute'
+          },
+          proposalId
+        );
+      }
+      // Deep contemplation on chapter (2+ minutes spent reading)
+      else if (secondsOnChapter >= 120 && !loggedLinger120s) {
+        loggedLinger120s = true;
+        trackEvent(
+          'inaction_dwell',
+          currentChapter,
+          {
+            chapter_name: currentTitle,
+            idle_seconds: secondsIdle,
+            chapter_duration: secondsOnChapter,
+            status: 'Careful contemplation (spent 2+ mins reading)'
+          },
+          proposalId
+        );
+      }
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('mousemove', resetIdleTimer);
+      window.removeEventListener('touchstart', resetIdleTimer);
+      window.removeEventListener('scroll', resetIdleTimer);
+      window.removeEventListener('click', resetIdleTimer);
+    };
+  }, [currentChapter, viewMode, proposalId]);
 
   // Check URL parameters on mount
   useEffect(() => {
