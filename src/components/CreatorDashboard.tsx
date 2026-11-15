@@ -6,15 +6,13 @@ import {
   Heart,
   Share2,
   Clock,
-  CheckCircle2,
   RefreshCw,
   Check,
   BarChart3,
   User,
   Plus,
   LogOut,
-  ArrowRight,
-  ExternalLink
+  ArrowRight
 } from 'lucide-react';
 import {
   loginUser,
@@ -354,6 +352,17 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                           className="w-full px-3 py-1.5 rounded-lg border border-rose-200 text-xs bg-white text-slate-800"
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Proposal Question</label>
+                      <input
+                        type="text"
+                        value={newQuestion}
+                        onChange={(e) => setNewQuestion(e.target.value)}
+                        placeholder="Will you be my girlfriend?"
+                        className="w-full px-3 py-1.5 rounded-lg border border-rose-200 text-xs bg-white text-slate-800"
+                      />
                     </div>
 
                     <div>
