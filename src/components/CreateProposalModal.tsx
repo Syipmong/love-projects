@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Heart, User, Sparkles, ArrowRight, RefreshCw, MessageSquareHeart } from 'lucide-react';
+import { X, Heart, User, ArrowRight, RefreshCw, MessageSquareHeart } from 'lucide-react';
 
 interface CreateProposalModalProps {
   isOpen: boolean;
@@ -181,7 +181,7 @@ export const CreateProposalModal: React.FC<CreateProposalModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4" />
+                    <Heart className="w-4 h-4 fill-white" />
                     <span>Generate Proposal Link</span>
                     <ArrowRight className="w-4 h-4" />
                   </>

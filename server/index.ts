@@ -9,7 +9,7 @@ import { sendZeptoMail } from './email.ts';
 import { hashPassword, verifyPassword, createSessionToken, validateSessionToken } from './auth.ts';
 import { generate6CharAlphaNumericCode } from './utils.ts';
 import { searchPexelsImages } from './pexels.ts';
-import type { DbUser, DbProposal, DbEvent, DbResponse, DashboardAnalytics } from './types.ts';
+import type { DbUser, DbProposal, DbEvent, DbResponse, DashboardAnalytics, DbAnonymousMessage } from './types.ts';
 
 dotenv.config();
 
@@ -131,6 +131,61 @@ async function generateUnique6CharCode(): Promise<string> {
   return crypto.randomBytes(3).toString('hex').toUpperCase();
 }
 
+/**
+ * Tracks email notification cooldowns for proposal link opens (15-min cooldown)
+ */
+const lastOpenedEmailAlert = new Map<string, number>();
+
+async function notifyCreatorProposalOpened(proposal: DbProposal): Promise<void> {
+  if (!proposal || !proposal.creator_email) return;
+
+  const now = Date.now();
+  const lastSent = lastOpenedEmailAlert.get(proposal.id) || 0;
+  // 15-minute cooldown to prevent multiple emails if she refreshes rapidly
+  if (now - lastSent < 15 * 60 * 1000) {
+    return;
+  }
+  lastOpenedEmailAlert.set(proposal.id, now);
+
+  const subject = `👀 ${proposal.partner_name} just opened your proposal story! (${proposal.slug})`;
+  const htmlBody = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 28px; background: #fff1f2; color: #1e293b; border-radius: 16px; max-width: 600px; margin: 0 auto; border: 1px solid #fecdd3;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <span style="font-size: 36px;">👀💕</span>
+        <h2 style="color: #e11d48; margin: 8px 0 4px 0; font-size: 24px;">She Just Opened Your Proposal!</h2>
+        <p style="color: #64748b; font-size: 14px; margin: 0;">Your romantic story is being read right now.</p>
+      </div>
+
+      <div style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #ffe4e6; margin-bottom: 20px;">
+        <p style="margin: 0 0 10px 0; font-size: 15px;">Hey <strong>${proposal.sender_name}</strong>,</p>
+        <p style="margin: 0 0 12px 0; font-size: 14px; line-height: 1.6; color: #334155;">
+          <strong>${proposal.partner_name}</strong> just opened your personalized proposal link (<strong style="color: #e11d48;">${proposal.slug}</strong>). She has arrived at Chapter 1!
+        </p>
+        <p style="margin: 0; font-size: 13px; color: #64748b;">
+          🕒 Opened at: <strong>${new Date().toLocaleTimeString()} (${new Date().toLocaleDateString()})</strong>
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="https://love-story-proposal.onrender.com/?dashboard=true" style="display: inline-block; padding: 14px 28px; background: #e11d48; color: #ffffff; text-decoration: none; border-radius: 9999px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);">
+          Open Live Studio & Watch Her Live →
+        </a>
+      </div>
+
+      <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 24px;">
+        Every choice, secret polaroid tap, hesitation pause, and her final answer will be logged live to your dashboard!
+      </p>
+    </div>
+  `;
+
+  sendZeptoMail({
+    toEmail: proposal.creator_email,
+    toName: proposal.creator_name || proposal.sender_name,
+    subject,
+    htmlBody
+  }).catch((err) => console.error('Error sending opened proposal notification:', err));
+}
+
 const server = http.createServer(async (req: http.IncomingMessage, res: http.ServerResponse) => {
   // CORS Preflight
   if (req.method === 'OPTIONS') {
@@ -154,7 +209,7 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
 
     // 2. Auth: Register
     if (req.method === 'POST' && pathname === '/api/auth/register') {
-      const body = await parseJsonBody<{ email?: string; password?: string; name?: string }>(req);
+      const body = await parseJsonBody<{ email?: string; password?: string; name?: string; handle?: string }>(req);
       const { email, password, name } = body;
 
       if (!email || !password) {
@@ -171,12 +226,22 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       const pwHash = hashPassword(password);
       const userName = name?.trim() || cleanEmail.split('@')[0];
 
+      const baseHandle = (body.handle || userName)
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '')
+        .slice(0, 24) || `user_${crypto.randomBytes(3).toString('hex')}`;
+      let userHandle = baseHandle;
+      const handleCheck = await pool.query('SELECT id FROM users WHERE handle = $1', [userHandle]);
+      if (handleCheck.rows.length > 0) {
+        userHandle = `${baseHandle}_${crypto.randomBytes(2).toString('hex')}`;
+      }
+
       const query = `
-        INSERT INTO users (id, email, password_hash, name)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id, email, name, created_at;
+        INSERT INTO users (id, email, password_hash, name, handle)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id, email, name, handle, created_at;
       `;
-      const result = await pool.query(query, [userId, cleanEmail, pwHash, userName]);
+      const result = await pool.query(query, [userId, cleanEmail, pwHash, userName, userHandle]);
       const user = result.rows[0];
       const token = createSessionToken(user.id, user.email);
 
@@ -193,18 +258,27 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       }
 
       const cleanEmail = email.toLowerCase().trim();
-      const result = await pool.query<DbUser>('SELECT * FROM users WHERE email = $1', [cleanEmail]);
+      const result = await pool.query<DbUser>(
+        'SELECT id, email, password_hash, name, handle, created_at FROM users WHERE email = $1',
+        [cleanEmail]
+      );
       const user = result.rows[0];
 
       if (!user || !verifyPassword(password, user.password_hash)) {
         return sendJson(res, 401, { error: 'Invalid email or password' });
       }
 
+      let userHandle = user.handle;
+      if (!userHandle) {
+        userHandle = (user.name?.toLowerCase().replace(/[^a-z0-9_]/g, '') || cleanEmail.split('@')[0]).slice(0, 24);
+        await pool.query('UPDATE users SET handle = $1 WHERE id = $2', [userHandle, user.id]).catch(() => {});
+      }
+
       const token = createSessionToken(user.id, user.email);
       return sendJson(res, 200, {
         success: true,
         token,
-        user: { id: user.id, email: user.email, name: user.name }
+        user: { id: user.id, email: user.email, name: user.name, handle: userHandle }
       });
     }
 
@@ -215,11 +289,16 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
         return sendJson(res, 401, { error: 'Unauthorized' });
       }
 
-      const result = await pool.query<DbUser>('SELECT id, email, name, created_at FROM users WHERE id = $1', [auth.userId]);
+      const result = await pool.query<DbUser>('SELECT id, email, name, handle, created_at FROM users WHERE id = $1', [auth.userId]);
       if (result.rows.length === 0) {
         return sendJson(res, 404, { error: 'User not found' });
       }
-      return sendJson(res, 200, result.rows[0]);
+      const u = result.rows[0];
+      if (!u.handle) {
+        u.handle = (u.name?.toLowerCase().replace(/[^a-z0-9_]/g, '') || u.email.split('@')[0]).slice(0, 24);
+        await pool.query('UPDATE users SET handle = $1 WHERE id = $2', [u.handle, u.id]).catch(() => {});
+      }
+      return sendJson(res, 200, u);
     }
 
     // 5. Create New Proposal (Generates Unique 6-Character Alphanumeric Code)
@@ -328,7 +407,10 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       if (result.rows.length === 0) {
         return sendJson(res, 404, { error: 'Proposal not found' });
       }
-      return sendJson(res, 200, result.rows[0]);
+      const prop = result.rows[0];
+      // Trigger transactional email to creator notifying them the partner opened their proposal!
+      notifyCreatorProposalOpened(prop).catch(console.error);
+      return sendJson(res, 200, prop);
     }
 
     // 8. Fetch All Proposals for Authenticated User
@@ -509,7 +591,155 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       return sendJson(res, result.success ? 200 : 500, result);
     }
 
-    // 13. Serve Static Frontend Files from dist/
+    // 13. Anonymous Messaging: Send Secret Anonymous Message (anonymoux)
+    if (req.method === 'POST' && pathname === '/api/anonymous/send') {
+      const body = await parseJsonBody<{
+        recipient_handle: string;
+        message: string;
+        prompt_category?: string;
+        sender_hint?: string;
+        device_hint?: string;
+      }>(req);
+
+      if (!body.recipient_handle || !body.message) {
+        return sendJson(res, 400, { error: 'Recipient handle and message are required' });
+      }
+
+      const cleanHandle = body.recipient_handle.toLowerCase().trim().replace(/^@/, '');
+      const cleanMsg = body.message.trim().slice(0, 1000);
+
+      // Find recipient user if exists
+      const userRes = await pool.query<DbUser>(
+        'SELECT id, email, name, handle FROM users WHERE handle = $1 OR email ILIKE $2 OR id = $1 LIMIT 1',
+        [cleanHandle, `${cleanHandle}@%`]
+      );
+      const recipientUser = userRes.rows[0] || null;
+
+      const insertQuery = `
+        INSERT INTO anonymous_messages (recipient_handle, user_id, message, prompt_category, sender_hint, device_hint)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *;
+      `;
+      const result = await pool.query<DbAnonymousMessage>(insertQuery, [
+        cleanHandle,
+        recipientUser ? recipientUser.id : null,
+        cleanMsg,
+        body.prompt_category || 'secret_message',
+        body.sender_hint?.trim() || null,
+        body.device_hint?.trim() || null
+      ]);
+
+      // If recipient has an email on file, send transactional notification
+      if (recipientUser?.email) {
+        sendZeptoMail({
+          toEmail: recipientUser.email,
+          toName: recipientUser.name,
+          subject: `💌 New anonymous secret message on Anonymoux!`,
+          htmlBody: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 28px; background: #faf5ff; color: #1e293b; border-radius: 16px; max-width: 600px; margin: 0 auto; border: 1px solid #e9d5ff;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <span style="font-size: 36px;">🤫💌</span>
+                <h2 style="color: #9333ea; margin: 8px 0 4px 0; font-size: 24px;">You Have A Secret Message!</h2>
+                <p style="color: #64748b; font-size: 14px; margin: 0;">Someone just sent you an anonymous note on anonymoux</p>
+              </div>
+
+              <div style="background: #ffffff; padding: 24px; border-radius: 16px; border: 1px solid #f3e8ff; box-shadow: 0 4px 12px rgba(147, 51, 234, 0.08); margin-bottom: 24px;">
+                <span style="display: inline-block; padding: 4px 12px; background: #f3e8ff; color: #9333ea; border-radius: 9999px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px;">
+                  ${body.prompt_category?.replace(/_/g, ' ') || 'Secret Message'}
+                </span>
+                <p style="font-size: 18px; font-style: italic; color: #1e293b; line-height: 1.6; margin: 0 0 12px 0;">
+                  "${cleanMsg}"
+                </p>
+                ${body.sender_hint ? `<p style="font-size: 12px; color: #64748b; margin: 0;">Hint from sender: <em>${body.sender_hint}</em></p>` : ''}
+              </div>
+
+              <div style="text-align: center;">
+                <a href="https://love-story-proposal.onrender.com/?dashboard=true&tab=anonymous" style="display: inline-block; padding: 14px 28px; background: #9333ea; color: #ffffff; text-decoration: none; border-radius: 9999px; font-weight: bold; font-size: 14px;">
+                  Open Your Anonymoux Inbox →
+                </a>
+              </div>
+            </div>
+          `
+        }).catch((err) => console.error('Anonymoux email error:', err));
+      }
+
+      return sendJson(res, 200, { success: true, message: result.rows[0] });
+    }
+
+    // 14. Anonymous Messaging: Get Recipient User Public Info
+    if (req.method === 'GET' && pathname.startsWith('/api/anonymous/user/')) {
+      const handle = pathname.replace('/api/anonymous/user/', '').toLowerCase().trim().replace(/^@/, '');
+      const userRes = await pool.query<DbUser>(
+        'SELECT id, name, handle FROM users WHERE handle = $1 OR email ILIKE $2 LIMIT 1',
+        [handle, `${handle}@%`]
+      );
+      if (userRes.rows.length === 0) {
+        return sendJson(res, 200, { handle, name: handle, exists: false });
+      }
+      return sendJson(res, 200, { handle: userRes.rows[0].handle || handle, name: userRes.rows[0].name, exists: true });
+    }
+
+    // 15. Anonymous Messaging: Get Current User's Inbox Messages
+    if (req.method === 'GET' && pathname === '/api/anonymous/inbox') {
+      const auth = getAuthUser(req);
+      if (!auth) {
+        return sendJson(res, 401, { error: 'Unauthorized' });
+      }
+
+      const userRes = await pool.query<DbUser>('SELECT id, handle, email FROM users WHERE id = $1', [auth.userId]);
+      const user = userRes.rows[0];
+      const userHandle = user?.handle || user?.email?.split('@')[0] || auth.userId;
+
+      const msgs = await pool.query<DbAnonymousMessage>(
+        `SELECT * FROM anonymous_messages 
+         WHERE user_id = $1 OR recipient_handle = $2 
+         ORDER BY created_at DESC 
+         LIMIT 100`,
+        [auth.userId, userHandle.toLowerCase()]
+      );
+
+      return sendJson(res, 200, { messages: msgs.rows, handle: userHandle });
+    }
+
+    // 16. Anonymous Messaging: Mark Message Read
+    if (req.method === 'PUT' && pathname.startsWith('/api/anonymous/read/')) {
+      const auth = getAuthUser(req);
+      if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
+
+      const msgId = parseInt(pathname.replace('/api/anonymous/read/', '').trim(), 10);
+      await pool.query('UPDATE anonymous_messages SET is_read = TRUE WHERE id = $1', [msgId]);
+      return sendJson(res, 200, { success: true });
+    }
+
+    // 17. Anonymous Messaging: Delete Message
+    if (req.method === 'DELETE' && pathname.startsWith('/api/anonymous/')) {
+      const auth = getAuthUser(req);
+      if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
+
+      const msgId = parseInt(pathname.replace('/api/anonymous/', '').trim(), 10);
+      await pool.query('DELETE FROM anonymous_messages WHERE id = $1', [msgId]);
+      return sendJson(res, 200, { success: true });
+    }
+
+    // 18. Update User Handle
+    if (req.method === 'PUT' && pathname === '/api/auth/handle') {
+      const auth = getAuthUser(req);
+      if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
+
+      const body = await parseJsonBody<{ handle?: string }>(req);
+      const newHandle = body.handle?.toLowerCase().trim().replace(/[^a-z0-9_]/g, '').slice(0, 30);
+      if (!newHandle) return sendJson(res, 400, { error: 'Invalid handle format' });
+
+      const existing = await pool.query('SELECT id FROM users WHERE handle = $1 AND id != $2', [newHandle, auth.userId]);
+      if (existing.rows.length > 0) {
+        return sendJson(res, 400, { error: 'This handle is already taken' });
+      }
+
+      await pool.query('UPDATE users SET handle = $1 WHERE id = $2', [newHandle, auth.userId]);
+      return sendJson(res, 200, { success: true, handle: newHandle });
+    }
+
+    // 19. Serve Static Frontend Files from dist/
     if (serveStatic(pathname, res)) {
       return;
     }

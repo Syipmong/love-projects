@@ -13,7 +13,6 @@ import {
   Check,
   Printer,
   MessageCircle,
-  Sparkles,
   ArrowRight
 } from 'lucide-react';
 import { ProposalConfig } from '../types';
@@ -413,7 +412,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
       >
         <div className="absolute top-0 right-0 w-32 h-32 bg-rose-400/10 rounded-full blur-2xl pointer-events-none" />
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs font-bold uppercase tracking-wider">
-          <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+          <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
           <span>Touched By This Story?</span>
         </div>
 
@@ -434,7 +433,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
             }}
             className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold text-xs sm:text-sm shadow-lg shadow-rose-200 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
           >
-            <Sparkles className="w-4 h-4" />
+            <Heart className="w-4 h-4 fill-white" />
             <span>Create A Free Proposal Now</span>
             <ArrowRight className="w-4 h-4" />
           </button>

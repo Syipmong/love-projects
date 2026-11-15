@@ -6,7 +6,6 @@ import {
   Camera,
   ExternalLink,
   Check,
-  Sparkles,
   Link2,
   RefreshCw
 } from 'lucide-react';
@@ -139,8 +138,8 @@ export const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Pexels Search</span>
+                <Camera className="w-3.5 h-3.5" />
+                <span>Pexels Photos</span>
               </button>
 
               <button

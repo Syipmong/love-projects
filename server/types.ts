@@ -3,6 +3,19 @@ export interface DbUser {
   email: string;
   password_hash: string;
   name: string;
+  handle?: string;
+  created_at: string;
+}
+
+export interface DbAnonymousMessage {
+  id: number;
+  recipient_handle: string;
+  user_id: string | null;
+  message: string;
+  prompt_category: string;
+  sender_hint: string | null;
+  device_hint: string | null;
+  is_read: boolean;
   created_at: string;
 }
 

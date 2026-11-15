@@ -10,6 +10,16 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Prevent mobile Safari & Chrome auto-zooming on focus while keeping inputs sharp */
+  input, textarea, select {
+    font-size: 16px !important;
+    touch-action: manipulation;
+  }
+
+  button, a {
+    touch-action: manipulation;
+  }
+
   h1, h2, h3, .font-romantic {
     font-family: 'Playfair Display', Georgia, serif;
   }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart,
   Share2,
@@ -23,7 +23,15 @@ import {
   Compass,
   Gift,
   MessageCircle,
-  Printer
+  Printer,
+  Send,
+  Trash2,
+  Copy,
+  ExternalLink,
+  Lock,
+  ShieldCheck,
+  CheckCheck,
+  MessageSquare
 } from 'lucide-react';
 import { ImagePickerModal } from './ImagePickerModal';
 import { CreateProposalModal } from './CreateProposalModal';
@@ -34,9 +42,13 @@ import {
   getUserProposals,
   createNewProposal,
   fetchDashboardData,
+  fetchAnonymousInbox,
+  deleteAnonymousMessage,
+  updateUserHandle,
   setStoredToken,
   AuthUser,
-  ProposalItem
+  ProposalItem,
+  AnonymousMessage
 } from '../services/api';
 import { ProposalConfig, AppTheme } from '../types';
 import { DEFAULT_CONFIG } from '../config';
@@ -59,8 +71,8 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
 
-  // Tabs: 'proposals' | 'editor' | 'analytics'
-  const [activeTab, setActiveTab] = useState<'proposals' | 'editor' | 'analytics'>('proposals');
+  // Tabs: 'proposals' | 'anonymous' | 'editor' | 'analytics'
+  const [activeTab, setActiveTab] = useState<'proposals' | 'anonymous' | 'editor' | 'analytics'>('proposals');
 
   // Proposals State
   const [proposals, setProposals] = useState<ProposalItem[]>([]);
@@ -72,6 +84,16 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [activePickerIndex, setActivePickerIndex] = useState<number | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Anonymous Messages (anonymoux) State
+  const [anonymousMessages, setAnonymousMessages] = useState<AnonymousMessage[]>([]);
+  const [loadingAnonymous, setLoadingAnonymous] = useState(false);
+  const [handleInput, setHandleInput] = useState('');
+  const [isSavingHandle, setIsSavingHandle] = useState(false);
+  const [handleStatusMsg, setHandleStatusMsg] = useState<string | null>(null);
+  const [copiedAnonLink, setCopiedAnonLink] = useState(false);
+  const [copiedStoryCardId, setCopiedStoryCardId] = useState<number | null>(null);
+  const [showSocialModal, setShowSocialModal] = useState<string | null>(null);
 
   // Analytics State
   const [analyticsData, setAnalyticsData] = useState<any>(null);
@@ -100,13 +122,65 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
     const user = await getCurrentUserProfile();
     setCurrentUser(user);
     if (user) {
+      if (user.handle) {
+        setHandleInput(user.handle);
+      }
       const list = await getUserProposals();
       setProposals(list);
       if (list.length > 0) {
         const target = list.find((p) => p.slug === activeProposalSlug) || list[0];
         selectProposal(target);
       }
+      loadAnonymousInbox();
     }
+  };
+
+  const loadAnonymousInbox = async () => {
+    setLoadingAnonymous(true);
+    const data = await fetchAnonymousInbox();
+    setAnonymousMessages(data.messages || []);
+    if (data.handle && !handleInput) {
+      setHandleInput(data.handle);
+    }
+    setLoadingAnonymous(false);
+  };
+
+  const handleSaveHandle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!handleInput.trim()) return;
+    setIsSavingHandle(true);
+    setHandleStatusMsg(null);
+    const res = await updateUserHandle(handleInput.trim());
+    setIsSavingHandle(false);
+    if (res.success && res.handle) {
+      setHandleStatusMsg(`Handle updated to @${res.handle}!`);
+      if (currentUser) {
+        setCurrentUser({ ...currentUser, handle: res.handle });
+      }
+      setTimeout(() => setHandleStatusMsg(null), 3000);
+    } else {
+      setHandleStatusMsg(res.error || 'Failed to update handle');
+    }
+  };
+
+  const handleDeleteAnonMessage = async (id: number) => {
+    await deleteAnonymousMessage(id);
+    setAnonymousMessages((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  const copyAnonymousLink = () => {
+    const activeHandle = currentUser?.handle || handleInput || 'user';
+    const link = `https://anonymoux.aetechlabs.com/u/${activeHandle}`;
+    navigator.clipboard.writeText(link);
+    setCopiedAnonLink(true);
+    setTimeout(() => setCopiedAnonLink(false), 2500);
+  };
+
+  const copyStoryReplyText = (msg: AnonymousMessage) => {
+    const text = `🤫 Secret message received on Anonymoux:\n"${msg.message}"\n\n👉 Send me yours: https://anonymoux.aetechlabs.com/u/${currentUser?.handle || handleInput || 'user'}`;
+    navigator.clipboard.writeText(text);
+    setCopiedStoryCardId(msg.id);
+    setTimeout(() => setCopiedStoryCardId(null), 2500);
   };
 
   const selectProposal = (prop: ProposalItem) => {

@@ -13,6 +13,7 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
+  handle?: string;
 }
 
 export interface ProposalItem {
@@ -260,5 +261,129 @@ export async function searchPexelsPhotos(
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Network error';
     return { success: false, photos: [], error: msg };
+  }
+}
+
+export interface AnonymousMessage {
+  id: number;
+  recipient_handle: string;
+  user_id?: string | null;
+  message: string;
+  prompt_category: string;
+  sender_hint?: string | null;
+  device_hint?: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+/**
+ * Send an anonymous secret message to a user handle (anonymoux)
+ */
+export async function sendAnonymousMessage(data: {
+  recipient_handle: string;
+  message: string;
+  prompt_category?: string;
+  sender_hint?: string;
+}): Promise<{ success: boolean; message?: AnonymousMessage; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/anonymous/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (!res.ok) return { success: false, error: result.error || 'Failed to send message' };
+    return { success: true, message: result.message };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Network error';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Fetch public recipient profile info for an anonymous link
+ */
+export async function getAnonymousUserInfo(handle: string): Promise<{ handle: string; name: string; exists: boolean }> {
+  try {
+    const res = await fetch(`${API_BASE}/anonymous/user/${encodeURIComponent(handle)}`);
+    if (!res.ok) return { handle, name: handle, exists: false };
+    return await res.json();
+  } catch {
+    return { handle, name: handle, exists: false };
+  }
+}
+
+/**
+ * Fetch received anonymous secret messages for authenticated user
+ */
+export async function fetchAnonymousInbox(): Promise<{ messages: AnonymousMessage[]; handle?: string }> {
+  const token = getStoredToken();
+  if (!token) return { messages: [] };
+  try {
+    const res = await fetch(`${API_BASE}/anonymous/inbox`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) return { messages: [] };
+    return await res.json();
+  } catch {
+    return { messages: [] };
+  }
+}
+
+/**
+ * Mark anonymous message as read
+ */
+export async function markAnonymousMessageRead(messageId: number): Promise<boolean> {
+  const token = getStoredToken();
+  if (!token) return false;
+  try {
+    const res = await fetch(`${API_BASE}/anonymous/read/${messageId}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Delete anonymous message
+ */
+export async function deleteAnonymousMessage(messageId: number): Promise<boolean> {
+  const token = getStoredToken();
+  if (!token) return false;
+  try {
+    const res = await fetch(`${API_BASE}/anonymous/${messageId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Update creator's unique username handle
+ */
+export async function updateUserHandle(handle: string): Promise<{ success: boolean; handle?: string; error?: string }> {
+  const token = getStoredToken();
+  if (!token) return { success: false, error: 'Unauthorized' };
+  try {
+    const res = await fetch(`${API_BASE}/auth/handle`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ handle })
+    });
+    const result = await res.json();
+    if (!res.ok) return { success: false, error: result.error || 'Failed to update handle' };
+    return { success: true, handle: result.handle };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Network error';
+    return { success: false, error: msg };
   }
 }

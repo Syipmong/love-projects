@@ -77,12 +77,34 @@ export async function initDb(): Promise<void> {
       );
     `);
 
+    // 5. Anonymous Messages table (anonymoux)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS anonymous_messages (
+        id SERIAL PRIMARY KEY,
+        recipient_handle VARCHAR(128) NOT NULL,
+        user_id VARCHAR(64) REFERENCES users(id) ON DELETE SET NULL,
+        message TEXT NOT NULL,
+        prompt_category VARCHAR(64) DEFAULT 'secret_message',
+        sender_hint VARCHAR(128),
+        device_hint VARCHAR(64),
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Add handle column to users if not present
+    await client.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS handle VARCHAR(64) UNIQUE;
+    `);
+
     // Indexes
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_proposals_slug ON proposals(slug);
       CREATE INDEX IF NOT EXISTS idx_proposals_user_id ON proposals(user_id);
       CREATE INDEX IF NOT EXISTS idx_events_proposal_id ON events(proposal_id);
       CREATE INDEX IF NOT EXISTS idx_responses_proposal_id ON responses(proposal_id);
+      CREATE INDEX IF NOT EXISTS idx_anon_recipient_handle ON anonymous_messages(recipient_handle);
+      CREATE INDEX IF NOT EXISTS idx_anon_user_id ON anonymous_messages(user_id);
     `);
 
     console.log('PostgreSQL raw SQL schema verified successfully.');
