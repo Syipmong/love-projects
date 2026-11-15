@@ -37,8 +37,7 @@ import {
   Dice5,
   PartyPopper,
   Activity,
-  X,
-  Send
+  X
 } from 'lucide-react';
 import {
   generatePromptStoryCard,
@@ -861,49 +860,24 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
             {/* TAB: ANONYMOUX INBOX & SOCIAL SHARING (anonymoux.aetechlabs.com) */}
             {activeTab === 'anonymous' && (
               <div className="space-y-6">
-                {/* Link & Social Share Card */}
-                <div className="bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900 text-white p-6 sm:p-8 rounded-3xl border border-purple-500/30 shadow-xl relative overflow-hidden">
-                  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div>
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold text-purple-200 border border-white/10 mb-2">
-                        <Lock className="w-3.5 h-3.5 text-purple-400" />
-                        <span>anonymoux.aetechlabs.com</span>
+                {/* Story Sticker Card & Social Share Engine (NGL/Sendit Viral Experience) */}
+                <div className="bg-gradient-to-br from-purple-950 via-indigo-950 to-slate-950 text-white p-6 sm:p-8 rounded-3xl border border-purple-500/30 shadow-2xl relative overflow-hidden space-y-6">
+                  {/* Top Bar: Handle & URL Settings */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-400/30 flex items-center justify-center">
+                        <Lock className="w-4 h-4" />
                       </div>
-                      <h3 className="text-xl sm:text-2xl font-bold font-romantic text-white">
-                        Your Anonymous Secret Message Link
-                      </h3>
-                      <p className="text-xs sm:text-sm text-purple-200/80 max-w-lg mt-1">
-                        Share this link on your Instagram Story, WhatsApp, Snapchat, or X. Anyone can send you honest confessions, sweet compliments, and secret messages anonymously!
-                      </p>
-
-                      <div className="mt-4 flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-xs font-bold bg-white/15 px-3 py-2 rounded-xl text-purple-100 border border-white/20 select-all">
-                          https://anonymoux.aetechlabs.com/u/{currentUser?.handle || handleInput || 'user'}
-                        </span>
-                        <button
-                          onClick={copyAnonymousLink}
-                          className="px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
-                        >
-                          {copiedAnonLink ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
-                          <span>{copiedAnonLink ? 'Link Copied!' : 'Copy Link'}</span>
-                        </button>
-                        <a
-                          href={`/?anon=${currentUser?.handle || handleInput || 'user'}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold flex items-center gap-1 border border-white/15 cursor-pointer"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Preview Page</span>
-                        </a>
+                      <div>
+                        <div className="text-xs text-purple-300 font-medium">Your Anonymous Story Link</div>
+                        <div className="text-sm font-bold text-white font-mono">
+                          anonymoux.aetechlabs.com/u/{currentUser?.handle || handleInput || 'user'}
+                        </div>
                       </div>
                     </div>
 
                     {/* Change Username Handle */}
-                    <div className="bg-white/10 p-4 rounded-2xl border border-white/15 max-w-xs w-full">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-purple-200 mb-1.5">
-                        Your Custom Handle
-                      </label>
+                    <div className="max-w-xs w-full sm:w-auto">
                       <form onSubmit={handleSaveHandle} className="flex gap-2">
                         <div className="relative flex-1">
                           <span className="absolute left-2.5 top-2 text-xs text-purple-300 font-bold">@</span>
@@ -912,86 +886,186 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                             value={handleInput}
                             onChange={(e) => setHandleInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                             placeholder="username"
-                            className="w-full pl-6 pr-2 py-1.5 bg-white/20 rounded-lg text-xs font-bold text-white placeholder:text-purple-300 border border-white/20 focus:outline-hidden"
+                            className="w-full pl-6 pr-2 py-1.5 bg-white/15 rounded-lg text-xs font-bold text-white placeholder:text-purple-300 border border-white/20 focus:outline-hidden"
                           />
                         </div>
                         <button
                           type="submit"
                           disabled={isSavingHandle}
-                          className="px-3 py-1.5 bg-white text-purple-950 font-bold rounded-lg text-xs hover:bg-purple-100 cursor-pointer disabled:opacity-50"
+                          className="px-3 py-1.5 bg-white text-purple-950 font-bold rounded-lg text-xs hover:bg-purple-100 cursor-pointer disabled:opacity-50 shrink-0"
                         >
                           Save
                         </button>
                       </form>
                       {handleStatusMsg && (
-                        <p className="text-[11px] text-emerald-300 mt-1.5 font-medium">{handleStatusMsg}</p>
+                        <p className="text-[11px] text-emerald-300 mt-1 font-medium">{handleStatusMsg}</p>
                       )}
                     </div>
                   </div>
 
-                  {/* Social Media Sharing Strip */}
-                  <div className="mt-6 pt-5 border-t border-white/15">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-purple-300 block mb-3">
-                      Share Instantly To Social Platforms:
-                    </span>
+                  {/* Central Visual Story Sticker (Styled like Instagram / NGL story sticker) */}
+                  <div className="max-w-md mx-auto">
+                    <div className="p-6 rounded-3xl bg-white text-slate-900 shadow-2xl border-4 border-purple-200/50 space-y-4 text-center transform transition-transform hover:scale-[1.01]">
+                      {/* Top Pill on sticker */}
+                      <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold shadow-inner">
+                        <Lock className="w-3 h-3 text-purple-600" />
+                        <span>@{currentUser?.handle || handleInput || 'user'}</span>
+                      </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                      {/* Instagram */}
+                      {/* Main Sticker Prompt */}
+                      <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug px-2 font-romantic">
+                        "{storyPrompt}"
+                      </h3>
+
+                      {/* Bottom link watermark */}
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-purple-600 font-semibold px-2">
+                        <span>anonymoux.aetechlabs.com</span>
+                        <span className="text-slate-400">tap link sticker</span>
+                      </div>
+                    </div>
+
+                    {/* Quick Prompt Ideas & Shuffle Button */}
+                    <div className="mt-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
                       <button
+                        type="button"
                         onClick={() => {
-                          copyAnonymousLink();
-                          setShowSocialModal('instagram');
+                          const presets = [
+                            'send me anonymous secret messages!',
+                            'tell me something you never told me',
+                            'what is one thing you like about me?',
+                            'send me an honest confession',
+                            'ask me anything completely honestly',
+                            'who do you think I have a crush on?',
+                            'what was your first impression of me?'
+                          ];
+                          const next = presets[(presets.indexOf(storyPrompt) + 1) % presets.length];
+                          setStoryPrompt(next);
                         }}
-                        className="p-3 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:opacity-90 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                        className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-purple-200 border border-white/15 text-xs font-semibold flex items-center gap-1 shrink-0 cursor-pointer transition-all"
+                        title="Shuffle story prompt"
                       >
-                        <span>📸 Instagram Story</span>
+                        <Dice5 className="w-3.5 h-3.5" />
+                        <span>Shuffle</span>
                       </button>
 
-                      {/* WhatsApp */}
+                      {[
+                        'send me anonymous secret messages!',
+                        'tell me something you never told me',
+                        'send me an honest confession',
+                        'ask me anything'
+                      ].map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setStoryPrompt(p)}
+                          className={`px-3 py-1 rounded-full text-xs shrink-0 cursor-pointer transition-all border ${
+                            storyPrompt === p
+                              ? 'bg-rose-500 text-white font-bold border-transparent shadow-xs'
+                              : 'bg-white/5 hover:bg-white/15 text-purple-200 border-white/10'
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Primary Action: Share to Instagram Story */}
+                  <div className="max-w-md mx-auto space-y-3">
+                    <button
+                      type="button"
+                      onClick={handleShareToInstagramStory}
+                      disabled={isGeneratingStory}
+                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:opacity-95 text-white font-bold text-sm sm:text-base shadow-xl shadow-pink-500/25 flex items-center justify-center gap-2.5 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      {isGeneratingStory ? (
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Instagram className="w-5 h-5" />
+                      )}
+                      <span>Share to Instagram Story</span>
+                    </button>
+
+                    {/* Secondary Social Media Share Buttons (Pure Lucide Icons) */}
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                       <button
-                        onClick={() => {
-                          const url = `https://anonymoux.aetechlabs.com/u/${currentUser?.handle || handleInput || 'user'}`;
-                          const text = encodeURIComponent(`Send me anonymous secret messages on Anonymoux! 🤫💌\n${url}`);
-                          window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-                        }}
-                        className="p-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                        type="button"
+                        onClick={handleShareWhatsApp}
+                        className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex flex-col items-center justify-center gap-1 shadow-sm cursor-pointer transition-all"
                       >
-                        <span>💬 WhatsApp</span>
+                        <MessageCircle className="w-4 h-4" />
+                        <span>WhatsApp</span>
                       </button>
 
-                      {/* Snapchat */}
                       <button
-                        onClick={() => {
-                          copyAnonymousLink();
-                          setShowSocialModal('snapchat');
-                        }}
-                        className="p-3 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-900 text-xs font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                        type="button"
+                        onClick={handleShareToSnapchatStory}
+                        className="p-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-900 text-xs font-semibold flex flex-col items-center justify-center gap-1 shadow-sm cursor-pointer transition-all"
                       >
-                        <span>👻 Snapchat Story</span>
+                        <Ghost className="w-4 h-4" />
+                        <span>Snapchat</span>
                       </button>
 
-                      {/* X (Twitter) */}
                       <button
-                        onClick={() => {
-                          const url = `https://anonymoux.aetechlabs.com/u/${currentUser?.handle || handleInput || 'user'}`;
-                          const text = encodeURIComponent(`Send me secret anonymous messages on Anonymoux! 💌👀\n${url}`);
-                          window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
-                        }}
-                        className="p-3 rounded-2xl bg-black hover:bg-slate-900 text-white text-xs font-bold flex items-center justify-center gap-2 border border-white/20 shadow-md cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                        type="button"
+                        onClick={handleShareTwitter}
+                        className="p-2.5 rounded-xl bg-black hover:bg-slate-900 text-white text-xs font-semibold flex flex-col items-center justify-center gap-1 border border-white/20 shadow-sm cursor-pointer transition-all"
                       >
-                        <span>𝕏 Post</span>
+                        <Twitter className="w-4 h-4" />
+                        <span>X (Twitter)</span>
                       </button>
 
-                      {/* Facebook */}
                       <button
-                        onClick={() => {
-                          const url = encodeURIComponent(`https://anonymoux.aetechlabs.com/u/${currentUser?.handle || handleInput || 'user'}`);
-                          window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-                        }}
-                        className="p-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                        type="button"
+                        onClick={handleShareFacebook}
+                        className="p-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex flex-col items-center justify-center gap-1 shadow-sm cursor-pointer transition-all"
                       >
-                        <span>📘 Facebook</span>
+                        <Facebook className="w-4 h-4" />
+                        <span>Facebook</span>
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={handleShareNative}
+                        className="p-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-semibold flex flex-col items-center justify-center gap-1 shadow-sm cursor-pointer transition-all"
+                        title="Open native mobile share sheet"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        <span>Share via...</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleDownloadPromptCard}
+                        className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex flex-col items-center justify-center gap-1 border border-white/15 shadow-sm cursor-pointer transition-all"
+                        title="Download story image graphic"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Download</span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-3 pt-1">
+                      <button
+                        type="button"
+                        onClick={copyAnonymousLink}
+                        className="text-xs text-purple-200 hover:text-white flex items-center gap-1.5 cursor-pointer underline"
+                      >
+                        {copiedAnonLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedAnonLink ? 'Link copied to clipboard!' : 'Copy raw link'}</span>
+                      </button>
+
+                      <span className="text-purple-400">•</span>
+
+                      <a
+                        href={`/?anon=${currentUser?.handle || handleInput || 'user'}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-purple-200 hover:text-white flex items-center gap-1 cursor-pointer"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Preview page</span>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -1056,20 +1130,21 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                             </p>
 
                             {msg.sender_hint && (
-                              <p className="text-[11px] text-purple-700 mt-2 bg-purple-50 p-2 rounded-xl border border-purple-100 font-medium">
-                                🔍 Sender hint: <em>"{msg.sender_hint}"</em>
+                              <p className="text-[11px] text-purple-700 mt-2 bg-purple-50 p-2 rounded-xl border border-purple-100 font-medium flex items-center gap-1.5">
+                                <Search className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                                <span>Sender hint: <em>"{msg.sender_hint}"</em></span>
                               </p>
                             )}
                           </div>
 
                           <div className="pt-2 border-t border-purple-100 flex items-center justify-between gap-2">
                             <button
-                              onClick={() => copyStoryReplyText(msg)}
-                              className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all active:scale-95"
-                              title="Copy formatted text to share on Instagram / Snapchat story"
+                              onClick={() => handleOpenReplyStory(msg)}
+                              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all active:scale-95"
+                              title="Create Instagram / Snapchat story card to reply"
                             >
-                              <Share2 className="w-3.5 h-3.5" />
-                              <span>{copiedStoryCardId === msg.id ? 'Story Text Copied!' : 'Share Reply To Story'}</span>
+                              <Instagram className="w-3.5 h-3.5" />
+                              <span>Share Reply To Story</span>
                             </button>
 
                             <button
@@ -1481,11 +1556,19 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                         Current Proposal Status
                       </span>
                       <div className="text-2xl font-black font-romantic mt-0.5">
-                        {analyticsData?.latestResponse?.answer === 'yes'
-                          ? 'SHE SAID YES! 🎉🥰'
-                          : analyticsData?.latestResponse?.answer === 'no'
-                          ? 'Responded: Respectful Decline 🕊️'
-                          : 'In Progress • She is exploring your story chapters right now'}
+                        {analyticsData?.latestResponse?.answer === 'yes' ? (
+                          <span className="flex items-center gap-2">
+                            <PartyPopper className="w-6 h-6 text-emerald-600" />
+                            <span>SHE SAID YES!</span>
+                          </span>
+                        ) : analyticsData?.latestResponse?.answer === 'no' ? (
+                          <span className="flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-slate-500" />
+                            <span>Responded: Respectful Decline</span>
+                          </span>
+                        ) : (
+                          'In Progress • She is exploring your story chapters right now'
+                        )}
                       </div>
                       <p className="text-xs opacity-80 mt-1">
                         {analyticsData?.latestResponse?.answer === 'yes'
@@ -1599,8 +1682,9 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                         ))}
                       </div>
                     ) : (
-                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center">
-                        ✨ Continuous smooth engagement — she explored unlocked chapters without long pauses!
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center flex items-center justify-center gap-1.5">
+                        <Activity className="w-4 h-4 text-emerald-500" />
+                        <span>Continuous smooth engagement — she explored unlocked chapters without long pauses!</span>
                       </div>
                     )}
                   </div>
@@ -1625,7 +1709,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                           <div>
                             <span className="text-[10px] font-bold text-purple-600 uppercase">What She Chose</span>
                             <p className="font-bold text-purple-700 text-sm mt-0.5">
-                              👉 "{latestQuiz.selected_option || latestQuiz.option}"
+                              "{latestQuiz.selected_option || latestQuiz.option}"
                             </p>
                           </div>
                           {latestQuiz.reaction && (
@@ -1750,12 +1834,12 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                           } else if (ev.event_type === 'proposal_accepted') {
                             icon = <Heart className="w-4 h-4 text-emerald-600 fill-emerald-600" />;
                             badgeBg = 'bg-emerald-100 border-emerald-300';
-                            title = `🎉 SHE SAID YES TO YOUR PROPOSAL! ❤️`;
+                            title = `SHE SAID YES TO YOUR PROPOSAL!`;
                             subtitle = 'Proposal officially accepted and celebrated!';
                           } else if (ev.event_type === 'proposal_declined') {
                             icon = <Heart className="w-4 h-4 text-slate-500" />;
                             badgeBg = 'bg-slate-100 border-slate-300';
-                            title = `Responded: Respectful Decline 🕊️`;
+                            title = `Responded: Respectful Decline`;
                           } else if (ev.event_type === 'love_voucher_claimed') {
                             icon = <Gift className="w-4 h-4 text-amber-500" />;
                             badgeBg = 'bg-amber-50 border-amber-200';
@@ -1813,61 +1897,203 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
         )}
       </main>
 
-      {/* Social Media Guide Modal (Instagram / Snapchat) */}
+      {/* Social Media Guide Modal (Instagram / Snapchat) - Viral NGL Style */}
       {showSocialModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 border border-slate-200">
             <div className="flex items-center justify-between">
-              <h4 className="font-bold text-slate-900 font-romantic text-lg">
-                {showSocialModal === 'instagram' ? '📸 Share to Instagram Story' : '👻 Share to Snapchat Story'}
-              </h4>
+              <div className="flex items-center gap-2">
+                {showSocialModal.platform === 'instagram' ? (
+                  <div className="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center">
+                    <Instagram className="w-4 h-4" />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <Ghost className="w-4 h-4" />
+                  </div>
+                )}
+                <h4 className="font-bold text-slate-900 font-romantic text-base sm:text-lg">
+                  {showSocialModal.platform === 'instagram' ? 'Share to Instagram Story' : 'Share to Snapchat Story'}
+                </h4>
+              </div>
               <button
                 onClick={() => setShowSocialModal(null)}
                 className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
+            {/* Visual Graphic Preview if available */}
+            {showSocialModal.dataUrl && (
+              <div className="w-36 h-48 mx-auto rounded-2xl overflow-hidden border-2 border-purple-200 shadow-md bg-slate-950">
+                <img
+                  src={showSocialModal.dataUrl}
+                  alt="Story Preview"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
             <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center gap-2 text-emerald-800 text-xs font-semibold">
-              <Check className="w-4 h-4 text-emerald-600" />
-              <span>Your Anonymoux link has already been copied to your clipboard!</span>
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Your secret link has been copied automatically!</span>
             </div>
 
             <div className="space-y-2.5 text-xs text-slate-600">
               <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50">
                 <span className="w-5 h-5 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">1</span>
-                <p>Open {showSocialModal === 'instagram' ? 'Instagram' : 'Snapchat'} and tap <strong>New Story (+)</strong>.</p>
+                <p>Tap <strong>Open {showSocialModal.platform === 'instagram' ? 'Instagram' : 'Snapchat'}</strong> below to launch your camera.</p>
               </div>
               <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50">
                 <span className="w-5 h-5 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">2</span>
-                <p>Tap the <strong>Stickers</strong> icon and select <strong>Link 🔗</strong>.</p>
+                <p>Tap the <strong>Stickers</strong> icon and pick <strong>Link</strong>.</p>
               </div>
               <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50">
                 <span className="w-5 h-5 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">3</span>
-                <p>Paste your link and write sticker text: <em>"Send me anonymous secret messages! 🤫💌"</em></p>
-              </div>
-              <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50">
-                <span className="w-5 h-5 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">4</span>
-                <p>Publish your story and watch secret messages roll into your inbox!</p>
+                <p>Paste your link and publish your story so friends can send anonymous notes!</p>
               </div>
             </div>
 
-            <div className="pt-2 flex gap-2">
-              <a
-                href={showSocialModal === 'instagram' ? 'https://instagram.com' : 'https://snapchat.com'}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 py-3 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-bold rounded-xl text-center text-xs shadow-md cursor-pointer"
-              >
-                Open {showSocialModal === 'instagram' ? 'Instagram' : 'Snapchat'}
-              </a>
+            <div className="pt-2 space-y-2">
               <button
-                onClick={() => setShowSocialModal(null)}
-                className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                type="button"
+                onClick={() => {
+                  if (showSocialModal.platform === 'instagram') {
+                    openInstagramStoryCamera();
+                  } else {
+                    openSnapchatCamera();
+                  }
+                }}
+                className="w-full py-3.5 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:opacity-95 text-white font-bold rounded-xl text-center text-xs shadow-md cursor-pointer flex items-center justify-center gap-2"
               >
-                Done
+                {showSocialModal.platform === 'instagram' ? (
+                  <Instagram className="w-4 h-4" />
+                ) : (
+                  <Ghost className="w-4 h-4" />
+                )}
+                <span>Launch {showSocialModal.platform === 'instagram' ? 'Instagram Stories' : 'Snapchat'}</span>
               </button>
+
+              <div className="flex gap-2">
+                {showSocialModal.dataUrl && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      downloadStoryImage(showSocialModal.dataUrl!, `anonymoux-story.png`);
+                    }}
+                    className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Image</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowSocialModal(null)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Story Reply Modal (Replying to an anonymous message like NGL) */}
+      {replyStoryModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <Instagram className="w-4 h-4" />
+                </div>
+                <h4 className="font-bold text-slate-900 font-romantic text-base sm:text-lg">
+                  Reply on Instagram Story
+                </h4>
+              </div>
+              <button
+                onClick={() => setReplyStoryModal(null)}
+                className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* High-res rendered card preview */}
+            <div className="w-44 h-60 mx-auto rounded-2xl overflow-hidden border-2 border-purple-300 shadow-lg bg-slate-950">
+              <img
+                src={replyStoryModal.dataUrl}
+                alt="Story Reply Preview"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            <p className="text-xs text-slate-600 text-center px-2">
+              Share this secret question card directly to your story so you can post your answer for your followers to see!
+            </p>
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={async () => {
+                  downloadStoryImage(replyStoryModal.dataUrl, 'anonymoux-reply-story.png');
+                  try {
+                    await navigator.clipboard.writeText(replyStoryModal.url);
+                  } catch {}
+                  openInstagramStoryCamera();
+                }}
+                className="w-full py-3.5 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:opacity-95 text-white font-bold rounded-xl text-center text-xs shadow-md cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Instagram className="w-4 h-4" />
+                <span>Open Instagram Camera</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  await shareStoryNative({
+                    title: 'Secret Message on Anonymoux',
+                    text: `Secret message received: "${replyStoryModal.msg.message}"\nSend me one too: ${replyStoryModal.url}`,
+                    url: replyStoryModal.url,
+                    blob: replyStoryModal.blob,
+                    filename: 'anonymoux-reply.png'
+                  });
+                }}
+                className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Share via System Share Sheet...</span>
+              </button>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    downloadStoryImage(replyStoryModal.dataUrl, 'anonymoux-reply-story.png');
+                  }}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download Card</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    copyStoryReplyText(replyStoryModal.msg);
+                  }}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  {copiedStoryCardId === replyStoryModal.msg.id ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                  <span>{copiedStoryCardId === replyStoryModal.msg.id ? 'Copied!' : 'Copy Text'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

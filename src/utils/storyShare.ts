@@ -13,7 +13,7 @@ export interface StoryCardOptions {
 export interface StoryReplyOptions {
   handle: string;
   message: string;
-  senderHint?: string;
+  senderHint?: string | null;
 }
 
 /**
