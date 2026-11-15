@@ -17,7 +17,13 @@ import {
   Camera,
   Eye,
   KeyRound,
-  Search
+  Search,
+  AlertTriangle,
+  HelpCircle,
+  Compass,
+  Gift,
+  MessageCircle,
+  Printer
 } from 'lucide-react';
 import { ImagePickerModal } from './ImagePickerModal';
 import { CreateProposalModal } from './CreateProposalModal';
@@ -70,6 +76,21 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
   // Analytics State
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [isLiveAutoRefresh, setIsLiveAutoRefresh] = useState(true);
+
+  // Real-time telemetry auto-polling every 4 seconds when viewing Analytics
+  useEffect(() => {
+    if (activeTab !== 'analytics' || !selectedProposal || !isLiveAutoRefresh) return;
+
+    const interval = setInterval(async () => {
+      const data = await fetchDashboardData(selectedProposal.slug);
+      if (data) {
+        setAnalyticsData(data);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [activeTab, selectedProposal, isLiveAutoRefresh]);
 
   useEffect(() => {
     checkAuth();
@@ -878,102 +899,397 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
             )}
 
             {/* TAB 3: LIVE ANALYTICS */}
-            {activeTab === 'analytics' && selectedProposal && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-slate-200">
-                  <div>
-                    <h3 className="font-bold text-base text-slate-800 font-romantic">
-                      Live Telemetry for: {selectedProposal.partner_name}
-                    </h3>
-                    <p className="text-xs text-slate-500">6-Character Code: <strong className="font-mono text-rose-600">{selectedProposal.slug}</strong></p>
-                  </div>
-                  <button
-                    onClick={() => loadAnalytics(selectedProposal.slug)}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${analyticsLoading ? 'animate-spin' : ''}`} />
-                    <span>Refresh</span>
-                  </button>
-                </div>
+            {activeTab === 'analytics' && selectedProposal && (() => {
+              const timeline: any[] = analyticsData?.timeline || [];
+              const hesitationEvents = timeline.filter(
+                (e) => e.event_type === 'inaction_dwell' || e.event_type === 'user_hesitation'
+              );
+              const quizEvents = timeline.filter((e) => e.event_type === 'quiz_answered');
+              const latestQuiz = quizEvents[0]?.data_json;
+              const polaroidsOpened = timeline.filter((e) => e.event_type === 'polaroid_opened');
+              const milestonesViewed = timeline.filter((e) => e.event_type === 'milestone_viewed');
+              const vouchersClaimed = timeline.filter((e) => e.event_type === 'love_voucher_claimed');
+              const maxChapter = timeline.reduce(
+                (max: number, ev: any) => Math.max(max, typeof ev.chapter === 'number' ? ev.chapter : 0),
+                0
+              );
 
-                {/* Outcome Banner */}
-                <div
-                  className={`p-6 rounded-3xl border-2 flex items-center justify-between gap-4 ${
-                    analyticsData?.latestResponse?.answer === 'yes'
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
-                      : analyticsData?.latestResponse?.answer === 'no'
-                      ? 'bg-slate-100 border-slate-300 text-slate-700'
-                      : 'bg-rose-50 border-rose-200 text-rose-800'
-                  }`}
-                >
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-wider opacity-75">Proposal Response</span>
-                    <div className="text-2xl font-black font-romantic mt-0.5">
-                      {analyticsData?.latestResponse?.answer === 'yes'
-                        ? 'SHE SAID YES! 🎉🥰'
+              return (
+                <div className="space-y-5">
+                  {/* Top Bar with Live Polling Controls */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-base text-slate-800 font-romantic">
+                          Live Telemetry: {selectedProposal.partner_name}
+                        </h3>
+                        <span className="font-mono text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
+                          {selectedProposal.slug}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Real-time telemetry of her responses, choices, and hesitation signals
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setIsLiveAutoRefresh(!isLiveAutoRefresh)}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer border ${
+                          isLiveAutoRefresh
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                            : 'bg-slate-50 text-slate-600 border-slate-200'
+                        }`}
+                        title="Toggle 4-second live auto-refresh"
+                      >
+                        <span className="relative flex h-2 w-2">
+                          {isLiveAutoRefresh && (
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          )}
+                          <span
+                            className={`relative inline-flex rounded-full h-2 w-2 ${
+                              isLiveAutoRefresh ? 'bg-emerald-500' : 'bg-slate-400'
+                            }`}
+                          ></span>
+                        </span>
+                        <span>{isLiveAutoRefresh ? 'Live Auto-Refresh (ON)' : 'Auto-Refresh Paused'}</span>
+                      </button>
+
+                      <button
+                        onClick={() => loadAnalytics(selectedProposal.slug)}
+                        className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                        title="Refresh now"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${analyticsLoading ? 'animate-spin' : ''}`} />
+                        <span>Refresh</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Outcome Banner */}
+                  <div
+                    className={`p-6 rounded-3xl border-2 flex items-center justify-between gap-4 transition-all ${
+                      analyticsData?.latestResponse?.answer === 'yes'
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
                         : analyticsData?.latestResponse?.answer === 'no'
-                        ? 'Responded: Respectful Decline'
-                        : 'In Progress / Reading Story Chapters'}
+                        ? 'bg-slate-100 border-slate-300 text-slate-700'
+                        : 'bg-rose-50 border-rose-200 text-rose-800'
+                    }`}
+                  >
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-wider opacity-75">
+                        Current Proposal Status
+                      </span>
+                      <div className="text-2xl font-black font-romantic mt-0.5">
+                        {analyticsData?.latestResponse?.answer === 'yes'
+                          ? 'SHE SAID YES! 🎉🥰'
+                          : analyticsData?.latestResponse?.answer === 'no'
+                          ? 'Responded: Respectful Decline 🕊️'
+                          : 'In Progress • She is exploring your story chapters right now'}
+                      </div>
+                      <p className="text-xs opacity-80 mt-1">
+                        {analyticsData?.latestResponse?.answer === 'yes'
+                          ? `Proposal accepted! "NO" button chased ${analyticsData?.teaseAttempts || 0} times before saying yes.`
+                          : analyticsData?.latestResponse?.answer === 'no'
+                          ? 'She completed the story and chose the respectful decline option.'
+                          : `Currently active on or reached Chapter ${maxChapter + 1} of 6.`}
+                      </p>
+                    </div>
+                    <Heart
+                      className={`w-10 h-10 ${
+                        analyticsData?.latestResponse?.answer === 'yes'
+                          ? 'text-emerald-500 fill-emerald-500'
+                          : analyticsData?.latestResponse?.answer === 'no'
+                          ? 'text-slate-400 fill-slate-400'
+                          : 'text-rose-500 fill-rose-500 animate-pulse'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Quick stats (4 columns) */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 text-center shadow-xs">
+                      <div className="text-2xl sm:text-3xl font-black font-romantic text-slate-800">
+                        {analyticsData?.totalEvents || 0}
+                      </div>
+                      <div className="text-[11px] font-bold text-slate-500 uppercase mt-1">
+                        Total Interactions
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 text-center shadow-xs">
+                      <div className="text-2xl sm:text-3xl font-black font-romantic text-rose-600">
+                        {analyticsData?.teaseAttempts || 0}
+                      </div>
+                      <div className="text-[11px] font-bold text-rose-500 uppercase mt-1">
+                        "NO" Button Chases
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 text-center shadow-xs">
+                      <div className="text-2xl sm:text-3xl font-black font-romantic text-amber-600">
+                        {hesitationEvents.length}
+                      </div>
+                      <div className="text-[11px] font-bold text-amber-500 uppercase mt-1">
+                        Inaction & Pauses
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 text-center shadow-xs">
+                      <div className="text-2xl sm:text-3xl font-black font-romantic text-emerald-600">
+                        Ch. {maxChapter + 1}
+                      </div>
+                      <div className="text-[11px] font-bold text-emerald-600 uppercase mt-1">
+                        Progress (of 6)
+                      </div>
                     </div>
                   </div>
-                  <Heart className="w-8 h-8 text-rose-500 fill-rose-500" />
-                </div>
 
-                {/* Quick stats */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-white p-5 rounded-3xl border border-slate-200 text-center">
-                    <div className="text-3xl font-black font-romantic text-slate-800">
-                      {analyticsData?.totalEvents || 0}
+                  {/* Partner Inaction & Hesitation Signals Card */}
+                  <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 space-y-3 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <AlertTriangle className="w-4 h-4 text-amber-500" />
+                        <span>Hesitation & Inaction Signals (Viewing Without Clicking)</span>
+                      </h4>
+                      <span className="text-[11px] font-semibold text-slate-400">
+                        {hesitationEvents.length} detected
+                      </span>
                     </div>
-                    <div className="text-xs font-semibold text-slate-500 uppercase mt-1">Interactions</div>
-                  </div>
 
-                  <div className="bg-white p-5 rounded-3xl border border-slate-200 text-center">
-                    <div className="text-3xl font-black font-romantic text-rose-600">
-                      {analyticsData?.teaseAttempts || 0}
-                    </div>
-                    <div className="text-xs font-semibold text-rose-500 uppercase mt-1">"NO" Tease Chases</div>
-                  </div>
-
-                  <div className="bg-white p-5 rounded-3xl border border-slate-200 text-center">
-                    <div className="text-3xl font-black font-romantic text-emerald-600">
-                      {analyticsData?.latestResponse?.answer === 'yes' ? '100%' : 'Active'}
-                    </div>
-                    <div className="text-xs font-semibold text-emerald-600 uppercase mt-1">Status</div>
-                  </div>
-                </div>
-
-                {/* Event Activity Feed */}
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 space-y-3">
-                  <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <Clock className="w-4 h-4 text-rose-500" />
-                    <span>Chronological Event Activity Feed</span>
-                  </h4>
-
-                  <div className="max-h-72 overflow-y-auto space-y-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs">
-                    {analyticsData?.timeline && analyticsData.timeline.length > 0 ? (
-                      analyticsData.timeline.map((ev: any) => (
-                        <div
-                          key={ev.id}
-                          className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between text-slate-700"
-                        >
-                          <span className="font-semibold text-rose-600">
-                            {ev.event_type.replace(/_/g, ' ').toUpperCase()}
-                          </span>
-                          <span className="text-[11px] text-slate-400">
-                            {new Date(ev.created_at).toLocaleTimeString()}
-                          </span>
-                        </div>
-                      ))
+                    {hesitationEvents.length > 0 ? (
+                      <div className="space-y-2">
+                        {hesitationEvents.map((hEv: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4"
+                          >
+                            <div className="flex items-start gap-2">
+                              <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                              <div>
+                                <strong className="font-semibold text-amber-950">
+                                  {hEv.data_json?.chapter_name || `Chapter ${hEv.chapter + 1}`}:
+                                </strong>{' '}
+                                <span>{hEv.data_json?.status || 'Lingering without action'}</span>
+                                <span className="ml-1 text-amber-700 font-mono text-[11px]">
+                                  (Paused for ~{hEv.data_json?.idle_seconds || 25}s)
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-[10px] text-amber-600 font-mono shrink-0 sm:text-right">
+                              {new Date(hEv.created_at).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
-                      <div className="text-slate-400 text-center py-6 text-xs">
-                        No activity recorded yet for this 6-character code. Send the link to start tracking!
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center">
+                        ✨ No extended inaction detected yet — she moved smoothly through unlocked chapters without lingering!
                       </div>
                     )}
                   </div>
+
+                  {/* Partner Responses & Choices Card */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Mini-Quiz Response */}
+                    <div className="bg-white p-5 rounded-3xl border border-slate-200 space-y-3 shadow-xs">
+                      <h4 className="text-xs font-bold text-purple-600 uppercase tracking-wider flex items-center gap-1.5">
+                        <HelpCircle className="w-4 h-4" />
+                        <span>Romantic Mini-Quiz Response</span>
+                      </h4>
+
+                      {latestQuiz ? (
+                        <div className="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-2 text-xs">
+                          <div>
+                            <span className="text-[10px] font-bold text-purple-600 uppercase">Question Asked</span>
+                            <p className="font-semibold text-slate-800 text-xs sm:text-sm mt-0.5">
+                              "{latestQuiz.question || 'Mini-Quiz'}"
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-purple-600 uppercase">Her Selected Answer</span>
+                            <p className="font-bold text-purple-700 text-sm mt-0.5">
+                              👉 "{latestQuiz.selected_option || latestQuiz.option}"
+                            </p>
+                          </div>
+                          {latestQuiz.reaction && (
+                            <div>
+                              <span className="text-[10px] font-bold text-slate-500 uppercase">Her Prompt Reaction</span>
+                              <p className="text-slate-600 italic mt-0.5">
+                                "{latestQuiz.reaction || latestQuiz.response}"
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-400 text-center">
+                          Mini-quiz has not been answered yet.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Unlocked Notes & Milestones Summary */}
+                    <div className="bg-white p-5 rounded-3xl border border-slate-200 space-y-3 shadow-xs">
+                      <h4 className="text-xs font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1.5">
+                        <Camera className="w-4 h-4" />
+                        <span>Polaroids & Milestones Explored</span>
+                      </h4>
+
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                          <span className="text-slate-600">Polaroid secret notes revealed:</span>
+                          <span className="font-bold text-rose-600 font-mono">
+                            {polaroidsOpened.length} notes
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                          <span className="text-slate-600">Story milestones read:</span>
+                          <span className="font-bold text-blue-600 font-mono">
+                            {milestonesViewed.length} moments
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                          <span className="text-slate-600">Love coupons claimed:</span>
+                          <span className="font-bold text-emerald-600 font-mono">
+                            {vouchersClaimed.length} coupons
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chronological Event Activity Feed */}
+                  <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 space-y-3 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <Clock className="w-4 h-4 text-rose-500" />
+                        <span>Chronological Event Activity Feed</span>
+                      </h4>
+                      <span className="text-xs text-slate-400 font-medium">
+                        Showing all {timeline.length} events
+                      </span>
+                    </div>
+
+                    <div className="max-h-96 overflow-y-auto space-y-2 bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200 text-xs">
+                      {timeline.length > 0 ? (
+                        timeline.map((ev: any) => {
+                          // Format nice labels and badge styles
+                          let icon = <Clock className="w-4 h-4 text-slate-500" />;
+                          let title = ev.event_type.replace(/_/g, ' ').toUpperCase();
+                          let subtitle: string | null = null;
+                          let badgeBg = 'bg-white border-slate-200';
+
+                          if (ev.event_type === 'no_button_evaded') {
+                            icon = <Heart className="w-4 h-4 text-rose-500" />;
+                            badgeBg = 'bg-rose-50 border-rose-200';
+                            title = `Dodged "NO" Button (Chase #${ev.data_json?.tease_attempts || '?'})`;
+                            if (ev.data_json?.speech_reaction) {
+                              subtitle = `Reaction: "${ev.data_json?.speech_reaction}"`;
+                            }
+                          } else if (ev.event_type === 'inaction_dwell') {
+                            icon = <AlertTriangle className="w-4 h-4 text-amber-500" />;
+                            badgeBg = 'bg-amber-50 border-amber-200';
+                            title = `Inaction / Hesitation on ${ev.data_json?.chapter_name || `Chapter ${ev.chapter + 1}`}`;
+                            subtitle = `Paused for ~${ev.data_json?.idle_seconds || 25}s (${ev.data_json?.status || 'Lingering'})`;
+                          } else if (ev.event_type === 'quiz_answered') {
+                            icon = <HelpCircle className="w-4 h-4 text-purple-500" />;
+                            badgeBg = 'bg-purple-50 border-purple-200';
+                            title = `Answered Mini-Quiz: Selected "${ev.data_json?.selected_option || ev.data_json?.option}"`;
+                            if (ev.data_json?.reaction) {
+                              subtitle = `Shown: "${ev.data_json?.reaction}"`;
+                            }
+                          } else if (ev.event_type === 'polaroid_opened') {
+                            icon = <Camera className="w-4 h-4 text-pink-500" />;
+                            badgeBg = 'bg-pink-50 border-pink-200';
+                            title = `Unlocked Polaroid Secret Note: "${ev.data_json?.title}"`;
+                            if (ev.data_json?.secret_note_revealed) {
+                              subtitle = `Note revealed: "${ev.data_json?.secret_note_revealed}"`;
+                            }
+                          } else if (ev.event_type === 'milestone_viewed') {
+                            icon = <Compass className="w-4 h-4 text-blue-500" />;
+                            badgeBg = 'bg-blue-50 border-blue-200';
+                            title = `Explored Milestone: "${ev.data_json?.title}"`;
+                          } else if (ev.event_type === 'heart_tapped') {
+                            icon = <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />;
+                            badgeBg = 'bg-rose-50 border-rose-200';
+                            title = `Tapped Heart Pulse (${ev.data_json?.heart_beats || ev.data_json?.heartPumps} beats)`;
+                          } else if (ev.event_type === 'envelope_opened') {
+                            icon = <BookOpen className="w-4 h-4 text-rose-500" />;
+                            badgeBg = 'bg-rose-50 border-rose-200';
+                            title = `Opened Proposal Letter Envelope`;
+                          } else if (ev.event_type === 'story_started') {
+                            icon = <BookOpen className="w-4 h-4 text-emerald-500" />;
+                            badgeBg = 'bg-emerald-50 border-emerald-200';
+                            title = `Began Romantic Story Walkthrough`;
+                          } else if (ev.event_type === 'chapter_navigated') {
+                            icon = <ArrowRight className="w-4 h-4 text-slate-500" />;
+                            badgeBg = 'bg-slate-100 border-slate-200';
+                            title = `Turned Page to Chapter ${(ev.chapter || 0) + 1}`;
+                          } else if (ev.event_type === 'proposal_accepted') {
+                            icon = <Heart className="w-4 h-4 text-emerald-600 fill-emerald-600" />;
+                            badgeBg = 'bg-emerald-100 border-emerald-300';
+                            title = `🎉 SAID YES! Proposal Accepted!`;
+                          } else if (ev.event_type === 'proposal_declined') {
+                            icon = <Heart className="w-4 h-4 text-slate-500" />;
+                            badgeBg = 'bg-slate-100 border-slate-300';
+                            title = `Respectfully Declined`;
+                          } else if (ev.event_type === 'love_voucher_claimed') {
+                            icon = <Gift className="w-4 h-4 text-amber-500" />;
+                            badgeBg = 'bg-amber-50 border-amber-200';
+                            title = `Claimed Love Coupon: "${ev.data_json?.voucher_title || ev.data_json?.voucher_id}"`;
+                          } else if (ev.event_type === 'certificate_printed') {
+                            icon = <Printer className="w-4 h-4 text-sky-500" />;
+                            badgeBg = 'bg-sky-50 border-sky-200';
+                            title = `Printed / Saved Official Love Certificate`;
+                          } else if (ev.event_type === 'whatsapp_alert_clicked') {
+                            icon = <MessageCircle className="w-4 h-4 text-emerald-600" />;
+                            badgeBg = 'bg-emerald-50 border-emerald-300';
+                            title = `Clicked WhatsApp Button to Message You!`;
+                          }
+
+                          return (
+                            <div
+                              key={ev.id}
+                              className={`p-3 rounded-2xl border transition-all flex items-start justify-between gap-3 ${badgeBg}`}
+                            >
+                              <div className="flex items-start gap-2.5">
+                                <div className="mt-0.5 shrink-0">{icon}</div>
+                                <div>
+                                  <div className="font-semibold text-slate-800">{title}</div>
+                                  {subtitle && (
+                                    <div className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                                      {subtitle}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                                {new Date(ev.created_at).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  second: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-slate-400 text-center py-8 text-xs space-y-1">
+                          <p className="font-semibold text-slate-600">No telemetry activity recorded yet</p>
+                          <p className="text-[11px]">
+                            Share your link with your partner to start tracking every tap, choice, and reaction live!
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
         )}
       </main>

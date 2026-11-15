@@ -219,10 +219,10 @@ export const App: React.FC = () => {
     recordProposalResponse({
       proposal_id: proposalId,
       answer: 'yes',
-      tease_attempts: 1
+      tease_attempts: totalTeases
     }, proposalId);
 
-    trackEvent('proposal_accepted', 5, { answer: 'yes' }, proposalId);
+    trackEvent('proposal_accepted', 5, { answer: 'yes', tease_attempts: totalTeases }, proposalId);
   };
 
   const handleDeclineProposal = () => {
@@ -232,15 +232,16 @@ export const App: React.FC = () => {
     recordProposalResponse({
       proposal_id: proposalId,
       answer: 'no',
-      tease_attempts: 5
+      tease_attempts: totalTeases
     }, proposalId);
 
-    trackEvent('proposal_declined', 4, { answer: 'no' }, proposalId);
+    trackEvent('proposal_declined', 4, { answer: 'no', tease_attempts: totalTeases }, proposalId);
   };
 
   const handleReset = () => {
     setIsDeclined(false);
     setCurrentChapter(0);
+    setTotalTeases(0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -327,13 +328,14 @@ export const App: React.FC = () => {
         ) : (
           <>
             {currentChapter === 0 && (
-              <Chapter1Intro config={config} onBegin={handleNext} />
+              <Chapter1Intro config={config} onBegin={handleNext} proposalId={proposalId} />
             )}
 
             {currentChapter === 1 && (
               <Chapter2Timeline
                 config={config}
                 onUnlockNext={setCanProceedChapter1}
+                proposalId={proposalId}
               />
             )}
 
@@ -341,6 +343,7 @@ export const App: React.FC = () => {
               <Chapter3Polaroids
                 config={config}
                 onUnlockNext={setCanProceedChapter2}
+                proposalId={proposalId}
               />
             )}
 
@@ -348,6 +351,7 @@ export const App: React.FC = () => {
               <Chapter4HeartfeltConfession
                 config={config}
                 onUnlockNext={setCanProceedChapter3}
+                proposalId={proposalId}
               />
             )}
 
@@ -359,6 +363,15 @@ export const App: React.FC = () => {
                 subheading={config.subheading}
                 onAccept={handleAcceptProposal}
                 onDecline={handleDeclineProposal}
+                onTease={(attempts, speech) => {
+                  setTotalTeases(attempts);
+                  trackEvent(
+                    'no_button_evaded',
+                    4,
+                    { tease_attempts: attempts, speech_reaction: speech },
+                    proposalId
+                  );
+                }}
               />
             )}
 
@@ -370,6 +383,7 @@ export const App: React.FC = () => {
                   setViewMode('dashboard');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
+                proposalId={proposalId}
               />
             )}
 

@@ -44,7 +44,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
     );
 
     if (willClaim) {
-      const couponObj = config.loveCoupons.find((c) => c.id === id);
+      const couponObj = config.dateCoupons?.find((c) => c.id === id);
       trackEvent(
         'love_voucher_claimed',
         5,
