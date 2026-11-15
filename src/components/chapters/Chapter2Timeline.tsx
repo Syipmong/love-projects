@@ -1,19 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Heart, Compass, ArrowRight } from 'lucide-react';
+import { Calendar, Heart, Compass, ArrowRight, CheckCircle2, Lock } from 'lucide-react';
 import { ProposalConfig, StoryMilestone } from '../../types';
 import { DynamicIcon } from '../IconHelper';
 import { LoveCounter } from '../LoveCounter';
 import { playPopSound } from '../../utils/audio';
+import { trackEvent } from '../../services/api';
 
 interface Chapter2TimelineProps {
   config: ProposalConfig;
+  onUnlockNext: (unlocked: boolean) => void;
 }
 
-export const Chapter2Timeline: React.FC<Chapter2TimelineProps> = ({ config }) => {
+export const Chapter2Timeline: React.FC<Chapter2TimelineProps> = ({ config, onUnlockNext }) => {
   const [activeMilestone, setActiveMilestone] = useState<StoryMilestone>(
     config.storyMilestones[0]
   );
+  const [visitedIds, setVisitedIds] = useState<string[]>([config.storyMilestones[0].id]);
+
+  useEffect(() => {
+    trackEvent('milestone_viewed', 1, { milestoneId: activeMilestone.id, title: activeMilestone.title });
+  }, []);
+
+  const handleSelectMilestone = (m: StoryMilestone) => {
+    playPopSound();
+    setActiveMilestone(m);
+    trackEvent('milestone_viewed', 1, { milestoneId: m.id, title: m.title });
+
+    if (!visitedIds.includes(m.id)) {
+      const updated = [...visitedIds, m.id];
+      setVisitedIds(updated);
+      if (updated.length >= config.storyMilestones.length) {
+        onUnlockNext(true);
+      }
+    }
+  };
+
+  const isAllVisited = visitedIds.length >= config.storyMilestones.length;
+
+  useEffect(() => {
+    onUnlockNext(isAllVisited);
+  }, [isAllVisited, onUnlockNext]);
 
   return (
     <motion.div
@@ -24,7 +51,7 @@ export const Chapter2Timeline: React.FC<Chapter2TimelineProps> = ({ config }) =>
       className="w-full max-w-2xl mx-auto px-4 z-10"
     >
       <div className="glass-card rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border-2 border-rose-200/90 text-center">
-        {/* Header without sparks */}
+        {/* Header */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-600 text-xs font-semibold tracking-wider uppercase mb-3">
           <Compass className="w-3.5 h-3.5" />
           <span>Chapter 2: Where It Started</span>
@@ -33,22 +60,36 @@ export const Chapter2Timeline: React.FC<Chapter2TimelineProps> = ({ config }) =>
         <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-800 font-romantic mb-2">
           Milestones in My Memory
         </h2>
-        <p className="text-slate-600 text-xs sm:text-sm max-w-md mx-auto mb-6">
+        <p className="text-slate-600 text-xs sm:text-sm max-w-md mx-auto mb-4">
           Every love story has turning points. Here are the moments where I quietly fell a little more for you.
         </p>
 
-        {/* Milestone selector pills with icons */}
+        {/* Anti-skip pacing banner */}
+        <div className="mb-5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-rose-50 border border-rose-200">
+          {isAllVisited ? (
+            <span className="text-emerald-600 flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>All 4 memories explored! You can now turn the page</span>
+            </span>
+          ) : (
+            <span className="text-rose-600 flex items-center gap-1">
+              <Lock className="w-3.5 h-3.5" />
+              <span>Explore all memories to turn the page ({visitedIds.length}/{config.storyMilestones.length})</span>
+            </span>
+          )}
+        </div>
+
+        {/* Milestone selector pills with visited indicator */}
         <div className="flex flex-wrap justify-center gap-2 mb-6">
           {config.storyMilestones.map((m, idx) => {
             const isSelected = activeMilestone.id === m.id;
+            const hasVisited = visitedIds.includes(m.id);
+
             return (
               <button
                 key={m.id}
-                onClick={() => {
-                  playPopSound();
-                  setActiveMilestone(m);
-                }}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
+                onClick={() => handleSelectMilestone(m)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer relative ${
                   isSelected
                     ? 'bg-rose-500 text-white shadow-md scale-105'
                     : 'bg-white hover:bg-rose-50 text-slate-600 border border-rose-200'
@@ -56,6 +97,11 @@ export const Chapter2Timeline: React.FC<Chapter2TimelineProps> = ({ config }) =>
               >
                 <DynamicIcon name={m.icon} className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : 'text-rose-500'}`} />
                 <span>{m.tag || `Moment ${idx + 1}`}</span>
+                {hasVisited && (
+                  <CheckCircle2
+                    className={`w-3 h-3 ${isSelected ? 'text-white' : 'text-emerald-500'}`}
+                  />
+                )}
               </button>
             );
           })}

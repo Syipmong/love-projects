@@ -1,22 +1,34 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, MessageSquareHeart } from 'lucide-react';
+import { Heart, MessageSquareHeart, CheckCircle2, Lock } from 'lucide-react';
 import { ProposalConfig } from '../../types';
 import { RomanticQuizCard } from '../RomanticQuizCard';
 import { playPopSound } from '../../utils/audio';
+import { trackEvent } from '../../services/api';
 
 interface Chapter4HeartfeltConfessionProps {
   config: ProposalConfig;
+  onUnlockNext: (unlocked: boolean) => void;
 }
 
 export const Chapter4HeartfeltConfession: React.FC<Chapter4HeartfeltConfessionProps> = ({
-  config
+  config,
+  onUnlockNext
 }) => {
   const [heartPumps, setHeartPumps] = useState(1);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const pumpHeart = () => {
     playPopSound();
     setHeartPumps((prev) => prev + 1);
+    setHasInteracted(true);
+    onUnlockNext(true);
+    trackEvent('heart_tapped', 3, { heartPumps: heartPumps + 1 });
+  };
+
+  const handleQuizAnswered = () => {
+    setHasInteracted(true);
+    onUnlockNext(true);
   };
 
   return (
@@ -28,7 +40,7 @@ export const Chapter4HeartfeltConfession: React.FC<Chapter4HeartfeltConfessionPr
       className="w-full max-w-2xl mx-auto px-4 z-10"
     >
       <div className="glass-card rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden border-2 border-rose-200/90 text-center">
-        {/* Header without sparks */}
+        {/* Header */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-600 text-xs font-semibold tracking-wider uppercase mb-3">
           <MessageSquareHeart className="w-3.5 h-3.5" />
           <span>Chapter 4: The Unspoken Feeling</span>
@@ -72,10 +84,25 @@ export const Chapter4HeartfeltConfession: React.FC<Chapter4HeartfeltConfessionPr
         </div>
 
         {/* Interactive Romantic Mini-Quiz */}
-        {config.quiz && <RomanticQuizCard quiz={config.quiz} />}
+        {config.quiz && (
+          <div onClick={handleQuizAnswered}>
+            <RomanticQuizCard quiz={config.quiz} />
+          </div>
+        )}
 
-        <div className="mt-6 text-xs text-rose-400 font-medium">
-          Ready for the next page? Click below...
+        {/* Anti-skip indicator */}
+        <div className="mt-6 flex justify-center">
+          {hasInteracted ? (
+            <span className="text-emerald-600 text-xs font-semibold flex items-center gap-1 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Ready for the big question! Proceed below</span>
+            </span>
+          ) : (
+            <span className="text-rose-500 text-xs font-medium flex items-center gap-1 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+              <Lock className="w-3.5 h-3.5" />
+              <span>Answer the question or tap the heart above to unlock the next chapter</span>
+            </span>
+          )}
         </div>
       </div>
     </motion.div>

@@ -1,52 +1,105 @@
 export interface ProposalResponsePayload {
-  to: string;
-  from: string;
-  question: string;
+  proposal_id?: string;
+  to?: string;
+  from?: string;
+  question?: string;
   answer: 'yes' | 'no';
-  teaseAttempts: number;
-  timestamp: string;
-  note?: string;
+  tease_attempts: number;
+  timestamp?: string;
+  notes?: string;
 }
 
-const STORAGE_KEY = 'be_mine_proposal_responses';
+export interface ProposalEventPayload {
+  proposal_id?: string;
+  event_type: string;
+  chapter: number;
+  data_json?: Record<string, unknown>;
+}
+
+const API_BASE = '/api';
 
 /**
- * Records proposal response.
- * Currently stores locally, and seamlessly connects to a backend server if VITE_API_URL is configured.
+ * Tracks every user interaction in real time
  */
-export async function recordProposalResponse(data: ProposalResponsePayload): Promise<boolean> {
-  // Always save locally first for instant reliability
+export async function trackEvent(
+  eventType: string,
+  chapter: number,
+  data?: Record<string, unknown>,
+  proposalId: string = 'default'
+) {
   try {
-    const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    existing.push(data);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
-  } catch (e) {
-    console.debug('Local storage error', e);
-  }
-
-  // If backend API URL is configured (e.g. http://localhost:3001 or deployed backend)
-  const apiUrl = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_API_URL;
-  if (apiUrl) {
-    try {
-      const response = await fetch(`${apiUrl}/api/response`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return response.ok;
-    } catch (err) {
-      console.warn('Backend API sync deferred (offline or server not yet running):', err);
-    }
-  }
-
-  return true;
-}
-
-export function getRecordedResponses(): ProposalResponsePayload[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  } catch {
-    return [];
+    await fetch(`${API_BASE}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        proposal_id: proposalId,
+        event_type: eventType,
+        chapter,
+        data_json: data || {}
+      })
+    });
+  } catch (err) {
+    console.debug('Telemetry sync error (cached locally):', err);
   }
 }
 
+/**
+ * Records proposal response
+ */
+export async function recordProposalResponse(data: ProposalResponsePayload, proposalId: string = 'default') {
+  try {
+    const res = await fetch(`${API_BASE}/response`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        proposal_id: proposalId,
+        answer: data.answer,
+        tease_attempts: data.tease_attempts,
+        notes: data.notes
+      })
+    });
+    return res.ok;
+  } catch (err) {
+    console.debug('Response sync error:', err);
+    return false;
+  }
+}
+
+/**
+ * Fetches dashboard analytics
+ */
+export async function fetchDashboardData(proposalId: string = 'default') {
+  try {
+    const res = await fetch(`${API_BASE}/dashboard/${proposalId}`);
+    if (!res.ok) throw new Error('Failed to fetch dashboard');
+    return await res.json();
+  } catch (err) {
+    console.error('Dashboard fetch error:', err);
+    return null;
+  }
+}
+
+/**
+ * Creates or updates a proposal
+ */
+export async function saveProposal(data: {
+  id?: string;
+  creator_email?: string;
+  creator_name?: string;
+  partner_name: string;
+  sender_name: string;
+  question: string;
+  config_json?: Record<string, unknown>;
+}) {
+  try {
+    const res = await fetch(`${API_BASE}/proposals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return await res.json();
+  } catch (err) {
+    console.error('Proposal save error:', err);
+    return null;
+  }
+}

@@ -1,88 +1,74 @@
-# 💖 Will You Be Mine? — Romantic Proposal Web App
+# 💖 Love Proposal Platform & SaaS
 
-A modern, highly animated, romantic, and playful proposal web application crafted with **Vite**, **React**, **TypeScript**, **Tailwind CSS**, and **Framer Motion**.
+A modern, multi-chapter romantic proposal platform and storybook built with **React**, **Vite**, **TypeScript**, **Tailwind CSS**, and a **Node.js + PostgreSQL backend using Raw SQL**.
 
-Designed to make asking out your favorite person unforgettable, fun, and heartwarming!
-
----
-
-## ✨ Features
-
-- **🏃‍♂️ The Playful Runaway "NO" Button**:
-  - Automatically darts away whenever the mouse hovers or touches near it!
-  - Every time she tries to click "NO", the button shrinks (`scale` decreases) and cycles through 16+ playful teasing messages (*"Are you sure? 🥺"*, *"Look at how big YES is! 👉"*, *"Don't break my heart! 😭"*, *"Error 404: 'No' not found! 🚫"*).
-  - Triggers cute cartoon boing/whoosh sound effects!
-
-- **❤️ The Magnetic "YES" Button**:
-  - Grows larger and more prominent each time she attempts to click "NO".
-  - Glows with a warm romantic pink pulse and sparkling icons.
-
-- **🧸 Dynamic Mascot Expressions**:
-  - Cute animated mascot updates in real-time to match her teasing count—from sweet anticipation, to pleading puppy eyes, to crying bear, to euphoric victory hugs!
-
-- **🎉 Grand Confetti & Chime Finale**:
-  - When she clicks "YES", a multi-cannon burst of heart-colored confetti explodes across the entire screen accompanied by a romantic celebration chime.
-
-- **💌 Interactive Unfolding Love Letter**:
-  - Clickable sealed envelope that unfolds into a heartfelt romantic letter with custom handwriting typography.
-
-- **📜 Official Relationship Certificate**:
-  - Certified with your names, today's date, and a "Seal of Love" badge.
-
-- **🎟️ Redeemable Date Vouchers**:
-  - Interactive cards she can tap to claim (*Late Night Food Run*, *Cozy Movie Marathon*, *Fancy Dinner Date*, *Princess Treatment Day*).
-
-- **🎵 Romantic Melodies**:
-  - Built-in Web Audio API synthesizer that plays gentle romantic chords with a toggle button (no external music files needed, 100% reliable).
-
-- **⚡ Instant Personalization & Link Sharing**:
-  - Click the **"Personalize"** button in the top left to change her name, your name, and the question.
-  - Or simply share a custom link:
-    ```
-    https://your-domain.com/?to=Maya&from=Liam&q=Will+you+be+my+girlfriend?
-    ```
+Now equipped with **Strict Anti-Skip Story Pacing**, a **Live Creator Analytics Dashboard**, **Telemetry Event Tracking**, and **ZeptoMail Transactional Alerts**!
 
 ---
 
-## 🚀 Getting Started
+## ✨ Core Highlights
 
-### 1. Run Locally
+### 🛡️ Strict Anti-Skip Story Pacing
+She cannot speed-click through your love story:
+- **Chapter 1 (An Invitation)**: Must break the wax seal and open the letter to begin.
+- **Chapter 2 (Milestones)**: Must click and explore all 4 milestones before the *"Next Chapter"* button unlocks `(Shows live counter: e.g. 2/4 visited)`.
+- **Chapter 3 (Memory Polaroids)**: Must tap and read all 4 secret polaroid notes before progressing `(e.g. 3/4 read)`.
+- **Chapter 4 (The Unspoken Feeling)**: Must answer the romantic mini-quiz or tap the beating heart before unlocking Chapter 5.
+- **Chapter 5 (The Big Question)**: The famous runaway "NO" button darts away and shrinks while "YES" outgrows the screen. Includes a dignified, romantic *"True No"* escape hatch if she genuinely wishes to decline.
+- **Chapter 6 (Our Forever)**: Grand celebration with confetti cannons, relationship certificate, secret date mystery safe, date vouchers, and instant WhatsApp notifications.
+
+---
+
+### 📊 PostgreSQL Database & Raw SQL Backend
+
+Connected directly to Prisma Postgres via raw SQL queries (`pg.Pool`):
+- **`proposals` table**: Stores personalized proposals (creator email, partner name, question, custom JSON config).
+- **`events` table**: Logs every interaction in real-time (`page_view`, `milestone_viewed`, `polaroid_opened`, `heart_tapped`, `quiz_answered`, `no_dodged`, `proposal_accepted`).
+- **`responses` table**: Stores her final choice (`yes` or `no`), exact tease/evasion attempts, and timestamp.
+
+#### API Endpoints
+- `POST /api/proposals`: Create/update a proposal.
+- `GET /api/proposals/:id`: Fetch proposal configuration by ID.
+- `POST /api/events`: Telemetry interaction logging.
+- `POST /api/response`: Record final answer & trigger email notification.
+- `GET /api/dashboard/:id`: Fetch aggregated analytics and recent event activity feed.
+- `GET /api/health`: Verify PostgreSQL connectivity.
+
+---
+
+### 📬 Zoho ZeptoMail Integration
+
+When she answers your question, an automated transactional email is instantly dispatched to your email address:
+- **SHE SAID YES!** 🎉: Contains her name, answer, playful tease count, and time.
+- Configured in `.env`:
+  ```env
+  ZEPTOMAIL_API_KEY=your_zeptomail_send_mail_token
+  ZEPTOMAIL_FROM_EMAIL=alerts@yourdomain.com
+  ```
+
+---
+
+### 📈 Live Creator Analytics Dashboard
+
+Click **"Metrics & Dashboard"** in the top navigation bar to see:
+- **Current Outcome**: *In Progress / She Said YES! / Declined*
+- **Total Interaction Events**: Live counter of all actions taken on the page.
+- **Playful Tease Count**: Exact number of times she tried to catch the "NO" button.
+- **Real-Time Activity Feed**: Chronological log of every milestone viewed, polaroid unlocked, and question answered with exact timestamps.
+- **Alert Email Setup**: Save your email address directly to PostgreSQL.
+
+---
+
+## 🚀 Running the Project
+
+### 1. Start the Backend Server (Port 3001)
 ```bash
-# Start development server
+node server/index.js
+```
+
+### 2. Start the Frontend Dev Server (Port 5174)
+```bash
 npm run dev
 ```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### 2. Build for Production
-```bash
-npm run build
-```
-The output will be in the `dist/` directory, ready to deploy.
-
----
-
-## 🌐 Free 1-Click Hosting Options
-
-You can host this project completely free on any of these platforms:
-
-### Option A: Vercel (Recommended — fastest)
-1. Push this project to GitHub.
-2. Go to [vercel.com](https://vercel.com) and click **"Add New Project"**.
-3. Import your GitHub repo.
-4. Click **"Deploy"**! Vercel will automatically detect Vite and give you a free `https://your-app.vercel.app` link.
-
-### Option B: Netlify
-1. Drag and drop the `dist/` folder after running `npm run build` directly onto [app.netlify.com/drop](https://app.netlify.com/drop).
-2. Instant live link in 10 seconds!
-
-### Option C: GitHub Pages
-1. Install `gh-pages`: `npm install -D gh-pages`
-2. Add `"deploy": "gh-pages -d dist"` to `package.json` scripts.
-3. Run `npm run build && npm run deploy`.
-
----
-
-## 🎨 Customizing Content in Code
-
-All default messages, letter paragraphs, reasons, and date vouchers can be customized in [`src/config.ts`](file:///c:/aetech/projects/love-projects/src/config.ts).
-
+Open [http://localhost:5174/](http://localhost:5174/) to experience the proposal!

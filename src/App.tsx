@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Heart } from 'lucide-react';
+import { Settings, Heart, BarChart3 } from 'lucide-react';
 import { ProposalConfig, AppTheme } from './types';
 import { DEFAULT_CONFIG } from './config';
 import { FloatingHearts } from './components/FloatingHearts';
@@ -14,9 +14,10 @@ import { StoryNavigation } from './components/StoryNavigation';
 import { CustomizeModal } from './components/CustomizeModal';
 import { MusicPlayer } from './components/MusicPlayer';
 import { ThemeSelector } from './components/ThemeSelector';
+import { CreatorDashboard } from './components/CreatorDashboard';
 import { fireGrandCelebration } from './utils/confetti';
 import { playCelebrationSound } from './utils/audio';
-import { recordProposalResponse } from './services/api';
+import { recordProposalResponse, trackEvent } from './services/api';
 
 const TOTAL_CHAPTERS = 6;
 
@@ -26,8 +27,15 @@ export const App: React.FC = () => {
   const [isDeclined, setIsDeclined] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<AppTheme>(config.theme || 'rose');
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [proposalId, setProposalId] = useState('default');
 
-  // Check URL parameters for custom names, questions, or starting chapter
+  // Anti-skip unlock states for each chapter
+  const [canProceedChapter1, setCanProceedChapter1] = useState(false);
+  const [canProceedChapter2, setCanProceedChapter2] = useState(false);
+  const [canProceedChapter3, setCanProceedChapter3] = useState(false);
+
+  // Check URL parameters on mount
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -37,6 +45,11 @@ export const App: React.FC = () => {
       const stepParam = params.get('ch');
       const sinceParam = params.get('since');
       const themeParam = params.get('theme') as AppTheme;
+      const idParam = params.get('id');
+
+      if (idParam) {
+        setProposalId(idParam);
+      }
 
       if (toParam || fromParam || qParam || sinceParam || themeParam) {
         setConfig((prev) => ({
@@ -59,6 +72,9 @@ export const App: React.FC = () => {
           setCurrentChapter(stepNum);
         }
       }
+
+      // Track initial visit
+      trackEvent('page_view', 0, { to: toParam || config.partnerName }, idParam || 'default');
     } catch (e) {
       console.debug('URL params parsing error', e);
     }
@@ -66,55 +82,63 @@ export const App: React.FC = () => {
 
   const handleNext = () => {
     if (currentChapter < TOTAL_CHAPTERS - 1) {
-      setCurrentChapter((prev) => prev + 1);
+      const nextCh = currentChapter + 1;
+      setCurrentChapter(nextCh);
+      trackEvent('chapter_navigated', nextCh, { chapter: nextCh }, proposalId);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handlePrev = () => {
     if (currentChapter > 0) {
-      setCurrentChapter((prev) => prev - 1);
+      const prevCh = currentChapter - 1;
+      setCurrentChapter(prevCh);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handleAcceptProposal = () => {
     setIsDeclined(false);
-    setCurrentChapter(5); // Jump to Celebration Chapter
+    setCurrentChapter(5);
     playCelebrationSound();
     fireGrandCelebration();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Record response to local storage / backend server
     recordProposalResponse({
-      to: config.partnerName,
-      from: config.senderName,
-      question: config.proposalQuestion,
+      proposal_id: proposalId,
       answer: 'yes',
-      teaseAttempts: 1,
-      timestamp: new Date().toISOString()
-    });
+      tease_attempts: 1
+    }, proposalId);
+
+    trackEvent('proposal_accepted', 5, { answer: 'yes' }, proposalId);
   };
 
   const handleDeclineProposal = () => {
     setIsDeclined(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Record response to local storage / backend server
     recordProposalResponse({
-      to: config.partnerName,
-      from: config.senderName,
-      question: config.proposalQuestion,
+      proposal_id: proposalId,
       answer: 'no',
-      teaseAttempts: 5,
-      timestamp: new Date().toISOString()
-    });
+      tease_attempts: 5
+    }, proposalId);
+
+    trackEvent('proposal_declined', 4, { answer: 'no' }, proposalId);
   };
 
   const handleReset = () => {
     setIsDeclined(false);
     setCurrentChapter(0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Determine if she is allowed to proceed to the next chapter based on engagement
+  const isNextAllowed = () => {
+    if (currentChapter === 0) return true; // opening envelope triggers onBegin
+    if (currentChapter === 1) return canProceedChapter1; // must view all 4 milestones
+    if (currentChapter === 2) return canProceedChapter2; // must view all 4 polaroid notes
+    if (currentChapter === 3) return canProceedChapter3; // must answer quiz / heart
+    return true;
   };
 
   const themeClass =
@@ -144,6 +168,16 @@ export const App: React.FC = () => {
             <span className="hidden sm:inline">Personalize</span>
           </button>
 
+          {/* Creator Live Analytics Dashboard Button */}
+          <button
+            onClick={() => setIsDashboardOpen(true)}
+            className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 shadow-sm backdrop-blur-md border border-rose-200 transition-all flex items-center gap-1.5 cursor-pointer text-xs font-semibold"
+            title="View Live Analytics & Metrics"
+          >
+            <BarChart3 className="w-3.5 h-3.5 text-rose-600" />
+            <span className="hidden sm:inline">Metrics & Dashboard</span>
+          </button>
+
           {/* Theme Selector */}
           <ThemeSelector currentTheme={currentTheme} onThemeChange={setCurrentTheme} />
         </div>
@@ -163,15 +197,24 @@ export const App: React.FC = () => {
             )}
 
             {currentChapter === 1 && (
-              <Chapter2Timeline config={config} />
+              <Chapter2Timeline
+                config={config}
+                onUnlockNext={setCanProceedChapter1}
+              />
             )}
 
             {currentChapter === 2 && (
-              <Chapter3Polaroids config={config} />
+              <Chapter3Polaroids
+                config={config}
+                onUnlockNext={setCanProceedChapter2}
+              />
             )}
 
             {currentChapter === 3 && (
-              <Chapter4HeartfeltConfession config={config} />
+              <Chapter4HeartfeltConfession
+                config={config}
+                onUnlockNext={setCanProceedChapter3}
+              />
             )}
 
             {currentChapter === 4 && (
@@ -189,13 +232,14 @@ export const App: React.FC = () => {
               <CelebrationView config={config} onReset={handleReset} />
             )}
 
-            {/* Story Navigation: Shown on chapters 0 through 3 */}
-            {currentChapter < 4 && (
+            {/* Story Navigation: Shown on chapters 0 through 3 with strict Anti-Skip enforcement */}
+            {currentChapter < 4 && currentChapter > 0 && (
               <StoryNavigation
                 currentChapter={currentChapter}
                 totalChapters={TOTAL_CHAPTERS}
                 onNext={handleNext}
                 onPrev={handlePrev}
+                canNext={isNextAllowed()}
                 nextLabel={currentChapter === 3 ? "The Important Question" : "Next Chapter"}
               />
             )}
@@ -228,6 +272,14 @@ export const App: React.FC = () => {
         onClose={() => setIsCustomizeOpen(false)}
         config={config}
         onSave={(updated) => setConfig(updated)}
+      />
+
+      {/* Creator Analytics Dashboard */}
+      <CreatorDashboard
+        isOpen={isDashboardOpen}
+        onClose={() => setIsDashboardOpen(false)}
+        proposalId={proposalId}
+        config={config}
       />
     </div>
   );
