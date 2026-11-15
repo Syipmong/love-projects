@@ -89,7 +89,7 @@ export const Chapter1Intro: React.FC<Chapter1IntroProps> = ({ config, onBegin, p
 
             <div className="pt-2">
               <button
-                onClick={onBegin}
+                onClick={handleStartStory}
                 className="px-8 py-3.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm sm:text-base shadow-lg transition-all flex items-center gap-2 mx-auto cursor-pointer hover:scale-105 active:scale-95"
               >
                 <BookOpen className="w-4 h-4" />
