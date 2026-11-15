@@ -1,14 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Heart, RotateCcw } from 'lucide-react';
+import { Heart, RotateCcw, Sparkles } from 'lucide-react';
 import { ProposalConfig } from '../types';
 
 interface RespectfulDeclineViewProps {
   config: ProposalConfig;
   onReset: () => void;
+  onCreateOwn?: () => void;
 }
 
-export const RespectfulDeclineView: React.FC<RespectfulDeclineViewProps> = ({ config, onReset }) => {
+export const RespectfulDeclineView: React.FC<RespectfulDeclineViewProps> = ({ config, onReset, onCreateOwn }) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -52,6 +53,22 @@ export const RespectfulDeclineView: React.FC<RespectfulDeclineViewProps> = ({ co
             <span>Return to Start</span>
           </button>
         </div>
+
+        {/* Create Your Own Invitation */}
+        {onCreateOwn && (
+          <div className="mt-8 pt-6 border-t border-rose-100 text-center space-y-2">
+            <p className="text-xs text-slate-500">
+              Want to create a personal love story or proposal for someone special?
+            </p>
+            <button
+              onClick={onCreateOwn}
+              className="px-5 py-2 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Create Your Own Proposal</span>
+            </button>
+          </div>
+        )}
       </div>
     </motion.div>
   );

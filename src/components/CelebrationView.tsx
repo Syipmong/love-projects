@@ -12,7 +12,9 @@ import {
   RotateCcw,
   Check,
   Printer,
-  MessageCircle
+  MessageCircle,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { ProposalConfig } from '../types';
 import { CUTE_REACTIONS } from '../config';
@@ -24,9 +26,10 @@ import { playPopSound } from '../utils/audio';
 interface CelebrationViewProps {
   config: ProposalConfig;
   onReset: () => void;
+  onCreateOwn?: () => void;
 }
 
-export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onReset }) => {
+export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onReset, onCreateOwn }) => {
   const [isLetterOpen, setIsLetterOpen] = useState(false);
   const [claimedCoupons, setClaimedCoupons] = useState<string[]>([]);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -375,6 +378,43 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
           })}
         </div>
       </div>
+
+      {/* Viral Loop / "Create Your Own" Story CTA */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="glass-card rounded-3xl p-6 sm:p-10 text-center bg-gradient-to-br from-rose-500/10 via-pink-500/5 to-amber-500/10 border-2 border-rose-300 shadow-xl space-y-4 relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-32 h-32 bg-rose-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs font-bold uppercase tracking-wider">
+          <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+          <span>Touched By This Story?</span>
+        </div>
+
+        <h3 className="text-2xl sm:text-3xl font-bold font-romantic text-slate-900 leading-tight">
+          Create Your Own Proposal For Your Favorite Person 💕
+        </h3>
+
+        <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+          Make someone feel truly special. Craft your personalized romantic chapters, milestones, polaroids with secret notes, and interactive evasive questions with live analytics.
+        </p>
+
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              playPopSound();
+              if (onCreateOwn) onCreateOwn();
+            }}
+            className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold text-xs sm:text-sm shadow-lg shadow-rose-200 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Create A Free Proposal Now</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </motion.div>
     </motion.div>
   );
 };

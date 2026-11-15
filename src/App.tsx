@@ -226,7 +226,14 @@ export const App: React.FC = () => {
       {/* Main Chapter Content */}
       <main className="relative z-20 flex-1 flex flex-col items-center justify-center py-2 sm:py-4">
         {isDeclined ? (
-          <RespectfulDeclineView config={config} onReset={handleReset} />
+          <RespectfulDeclineView
+            config={config}
+            onReset={handleReset}
+            onCreateOwn={() => {
+              setViewMode('dashboard');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
         ) : (
           <>
             {currentChapter === 0 && (
@@ -266,7 +273,14 @@ export const App: React.FC = () => {
             )}
 
             {currentChapter === 5 && (
-              <CelebrationView config={config} onReset={handleReset} />
+              <CelebrationView
+                config={config}
+                onReset={handleReset}
+                onCreateOwn={() => {
+                  setViewMode('dashboard');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              />
             )}
 
             {/* Story Navigation: Shown on chapters 0 through 3 with strict Anti-Skip enforcement */}
@@ -297,10 +311,23 @@ export const App: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-20 text-center py-4 text-xs text-rose-400/80 font-medium">
+      <footer className="relative z-20 text-center py-4 text-xs text-rose-400/80 font-medium space-y-1.5">
         <p className="flex items-center justify-center gap-1">
           A story created with endless love <Heart className="w-3.5 h-3.5 fill-rose-400 text-rose-400" />
         </p>
+        {proposalId !== 'default' && (
+          <p>
+            <button
+              onClick={() => {
+                setViewMode('dashboard');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="text-[11px] text-rose-500/80 hover:text-rose-600 underline underline-offset-2 transition-colors cursor-pointer"
+            >
+              Create your own proposal for someone special →
+            </button>
+          </p>
+        )}
       </footer>
 
       {/* Quick Customization Modal */}
