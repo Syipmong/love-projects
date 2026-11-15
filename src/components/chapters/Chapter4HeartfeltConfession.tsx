@@ -9,26 +9,39 @@ import { trackEvent } from '../../services/api';
 interface Chapter4HeartfeltConfessionProps {
   config: ProposalConfig;
   onUnlockNext: (unlocked: boolean) => void;
+  proposalId?: string;
 }
 
 export const Chapter4HeartfeltConfession: React.FC<Chapter4HeartfeltConfessionProps> = ({
   config,
-  onUnlockNext
+  onUnlockNext,
+  proposalId = 'default'
 }) => {
   const [heartPumps, setHeartPumps] = useState(1);
   const [hasInteracted, setHasInteracted] = useState(false);
 
   const pumpHeart = () => {
     playPopSound();
-    setHeartPumps((prev) => prev + 1);
+    const nextBeats = heartPumps + 1;
+    setHeartPumps(nextBeats);
     setHasInteracted(true);
     onUnlockNext(true);
-    trackEvent('heart_tapped', 3, { heartPumps: heartPumps + 1 });
+    trackEvent('heart_tapped', 3, { heart_beats: nextBeats }, proposalId);
   };
 
-  const handleQuizAnswered = () => {
+  const handleQuizAnswered = (opt: { text: string; icon: string; response: string }) => {
     setHasInteracted(true);
     onUnlockNext(true);
+    trackEvent(
+      'quiz_answered',
+      3,
+      {
+        question: config.quiz?.prompt,
+        selected_option: opt.text,
+        reaction: opt.response
+      },
+      proposalId
+    );
   };
 
   return (
@@ -85,9 +98,7 @@ export const Chapter4HeartfeltConfession: React.FC<Chapter4HeartfeltConfessionPr
 
         {/* Interactive Romantic Mini-Quiz */}
         {config.quiz && (
-          <div onClick={handleQuizAnswered}>
-            <RomanticQuizCard quiz={config.quiz} />
-          </div>
+          <RomanticQuizCard quiz={config.quiz} onAnswer={handleQuizAnswered} />
         )}
 
         {/* Anti-skip indicator */}
