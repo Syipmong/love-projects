@@ -26,12 +26,24 @@ export interface RomanticQuiz {
   options: RomanticQuizOption[];
 }
 
+export interface SecretDateSurprise {
+  code: string;
+  hint: string;
+  title: string;
+  location: string;
+  details: string;
+}
+
+export type AppTheme = 'rose' | 'champagne' | 'lavender';
+
 export interface ProposalConfig {
   partnerName: string;
   senderName: string;
   proposalQuestion: string;
   subheading?: string;
-  startDate?: string; // e.g. "2024-01-01" for the live love ticker
+  startDate?: string;
+  theme?: AppTheme;
+  whatsappPhone?: string; // Optional phone number for instant WhatsApp notification
   introBadge: string;
   introTitle: string;
   introSubtitle: string;
@@ -39,6 +51,8 @@ export interface ProposalConfig {
   polaroids: MemoryPolaroid[];
   confessionParagraphs: string[];
   quiz?: RomanticQuiz;
+  secretDateSurprise?: SecretDateSurprise;
+  respectfulRejectionMessage?: string[];
   reasons: {
     id: string;
     title: string;

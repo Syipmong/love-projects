@@ -5,7 +5,9 @@ export const DEFAULT_CONFIG: ProposalConfig = {
   senderName: "Yours Truly",
   proposalQuestion: "Will you be my girlfriend?",
   subheading: "Every chapter of our story has quietly led to this one question...",
-  startDate: "2024-06-01", // Customizable: Date you first met or started talking
+  startDate: "2024-06-01",
+  theme: "rose",
+  whatsappPhone: "", // Enter phone with country code e.g. "1234567890"
 
   // Chapter 1: The Intro / Subtle Invitation
   introBadge: "A Special Space Just For You",
@@ -80,18 +82,18 @@ export const DEFAULT_CONFIG: ProposalConfig = {
     }
   ],
 
-  // Interactive Mini Quiz / Sweet Question before the proposal
+  // Interactive Mini Quiz
   quiz: {
     prompt: "Quick question before we turn the next page: Do you know what my absolute favorite thing about you is?",
     options: [
       {
         text: "Your radiant smile",
-        response: "Your smile is genuinely breathtaking, but there's even more to it...",
+        response: "Your smile is genuinely breathtaking, but there is even more to it...",
         icon: "sun"
       },
       {
         text: "The way you make me laugh",
-        response: "Your humor is unmatched, but it's deeper than that...",
+        response: "Your humor is unmatched, but it goes deeper than that...",
         icon: "smile"
       },
       {
@@ -108,6 +110,23 @@ export const DEFAULT_CONFIG: ProposalConfig = {
     "Real love, I've learned from you, is wanting someone to be safe. It's caring about how their day went. It's admiring their strength, respecting their boundaries, and celebrating their smallest wins.",
     "You've shown me a kind of tenderness I didn't know I was missing. When I picture tomorrow, next week, or next year, it always has you in it.",
     "I don't just want to be someone who admires you from afar. I want to be the one who supports your dreams, holds your hand through life's storms, and makes sure you never doubt how deeply you are loved."
+  ],
+
+  // Secret Date Surprise Vault
+  secretDateSurprise: {
+    code: "yes",
+    hint: "Enter 'yes' (or 'forever') to unlock",
+    title: "A Golden Sunset & Stargazing Picnic",
+    location: "A Beautiful Scenic Lookout",
+    details: "Wear warm and cozy clothes. I will bring your favorite warm drinks, delicious food, soft blankets, and stargazing music."
+  },
+
+  // Respectful decline message if she genuinely chooses no
+  respectfulRejectionMessage: [
+    "I want you to know how deeply I appreciate your honesty.",
+    "True love and genuine affection can never be pressured, and my respect for you and your heart comes before anything else.",
+    "Thank you for walking through this story with me and for giving me your time.",
+    "You are a truly wonderful, bright person in this world. Nothing changes the warmth, kindness, and support I will always have for you."
   ],
 
   // Reasons Why
@@ -186,7 +205,7 @@ export const DEFAULT_CONFIG: ProposalConfig = {
   ]
 };
 
-// Playful and funny texts for the "No" button as it is clicked or chased (clean, no emojis)
+// Playful and funny texts for the "No" button as it is clicked or chased
 export const NO_BUTTON_TEXTS: string[] = [
   "No",
   "Are you sure?",
