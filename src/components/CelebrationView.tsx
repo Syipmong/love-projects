@@ -76,7 +76,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
     playPopSound();
     trackEvent('whatsapp_alert_clicked', 5, { sender: config.senderName, partner: config.partnerName }, proposalId);
     const phone = config.whatsappPhone?.replace(/[^0-9]/g, '') || '';
-    const text = encodeURIComponent(`Hey ${config.senderName}... I just walked through our story, and I said YES! ❤️🥰`);
+    const text = encodeURIComponent(`Hey ${config.senderName}... I just walked through our story, and I said YES!`);
     const waUrl = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`;
     window.open(waUrl, '_blank');
   };
@@ -138,7 +138,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
             className="px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
           >
             <MessageCircle className="w-4 h-4" />
-            <span>Tell Him I Said YES! 💌</span>
+            <span>Tell Him I Said YES!</span>
           </button>
 
           <button
@@ -416,8 +416,9 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
           <span>Touched By This Story?</span>
         </div>
 
-        <h3 className="text-2xl sm:text-3xl font-bold font-romantic text-slate-900 leading-tight">
-          Create Your Own Proposal For Your Favorite Person 💕
+        <h3 className="text-2xl sm:text-3xl font-bold font-romantic text-slate-900 leading-tight flex items-center justify-center gap-2">
+          <Heart className="w-6 h-6 text-rose-500 fill-rose-500" />
+          <span>Create Your Own Proposal For Your Favorite Person</span>
         </h3>
 
         <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">

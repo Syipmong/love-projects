@@ -417,11 +417,16 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                                 : 'bg-rose-100 text-rose-700'
                             }`}
                           >
-                            {prop.latest_answer === 'yes'
-                              ? 'SAID YES! ❤️'
-                              : prop.latest_answer === 'no'
-                              ? 'Declined'
-                              : 'In Progress'}
+                            {prop.latest_answer === 'yes' ? (
+                              <span className="flex items-center gap-1">
+                                <Heart className="w-3 h-3 fill-rose-600 text-rose-600" />
+                                <span>SAID YES!</span>
+                              </span>
+                            ) : prop.latest_answer === 'no' ? (
+                              'Declined'
+                            ) : (
+                              'In Progress'
+                            )}
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-400 mt-0.5">
@@ -489,12 +494,17 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-75">
                   Current Status
                 </span>
-                <div className="text-lg sm:text-xl font-black font-romantic mt-0.5">
-                  {isAccepted
-                    ? 'SHE SAID YES! 🎉🥰'
-                    : isDeclined
-                    ? 'Responded: Respectful Decline'
-                    : 'In Progress / Reading Story'}
+                <div className="text-lg sm:text-xl font-black font-romantic mt-0.5 flex items-center gap-2">
+                  {isAccepted ? (
+                    <>
+                      <Heart className="w-5 h-5 fill-rose-600 text-rose-600" />
+                      <span>SHE SAID YES!</span>
+                    </>
+                  ) : isDeclined ? (
+                    'Responded: Respectful Decline'
+                  ) : (
+                    'In Progress / Reading Story'
+                  )}
                 </div>
               </div>
 

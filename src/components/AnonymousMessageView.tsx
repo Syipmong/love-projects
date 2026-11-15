@@ -7,7 +7,10 @@ import {
   ShieldCheck,
   CheckCircle2,
   RefreshCw,
-  Lock
+  Lock,
+  MessageCircle,
+  Award,
+  Camera
 } from 'lucide-react';
 import { sendAnonymousMessage, getAnonymousUserInfo } from '../services/api';
 import { playPopSound } from '../utils/audio';
@@ -19,11 +22,11 @@ interface AnonymousMessageViewProps {
 }
 
 const PROMPT_TEMPLATES = [
-  { id: 'confession', label: '💖 Secret Crush', prompt: 'I have had a quiet crush on you because...' },
-  { id: 'ama', label: '💬 Ask Me Anything', prompt: 'Be completely honest: what is one thing...' },
-  { id: 'compliment', label: '💌 Secret Compliment', prompt: 'One thing I truly admire about you is...' },
-  { id: 'memory', label: '📸 A Memory We Share', prompt: 'Do you remember that time when...' },
-  { id: 'random', label: '🎲 Wild Card', prompt: 'If we could go anywhere together right now...' }
+  { id: 'confession', label: 'Secret Crush', icon: Heart, prompt: 'I have had a quiet crush on you because...' },
+  { id: 'ama', label: 'Ask Me Anything', icon: MessageCircle, prompt: 'Be completely honest: what is one thing...' },
+  { id: 'compliment', label: 'Secret Compliment', icon: Award, prompt: 'One thing I truly admire about you is...' },
+  { id: 'memory', label: 'A Memory We Share', icon: Camera, prompt: 'Do you remember that time when...' },
+  { id: 'random', label: 'Wild Card', icon: Dice5, prompt: 'If we could go anywhere together right now...' }
 ];
 
 const RANDOM_PROMPTS = [
@@ -183,20 +186,24 @@ export const AnonymousMessageView: React.FC<AnonymousMessageViewProps> = ({
                 </label>
 
                 <div className="flex flex-wrap gap-1.5">
-                  {PROMPT_TEMPLATES.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => handleSelectCategory(cat)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
-                        selectedCategory === cat.id
-                          ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white border-transparent shadow-md'
-                          : 'bg-white/5 hover:bg-white/15 text-slate-300 border-white/10'
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
+                  {PROMPT_TEMPLATES.map((cat) => {
+                    const CatIcon = cat.icon;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => handleSelectCategory(cat)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                          selectedCategory === cat.id
+                            ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white border-transparent shadow-md'
+                            : 'bg-white/5 hover:bg-white/15 text-slate-300 border-white/10'
+                        }`}
+                      >
+                        <CatIcon className="w-3.5 h-3.5" />
+                        <span>{cat.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -275,8 +282,9 @@ export const AnonymousMessageView: React.FC<AnonymousMessageViewProps> = ({
               </div>
 
               <div>
-                <h2 className="text-2xl sm:text-3xl font-bold font-romantic text-white">
-                  Message Sent Secretly! 💌
+                <h2 className="text-2xl sm:text-3xl font-bold font-romantic text-white flex items-center justify-center gap-2">
+                  <Send className="w-6 h-6 text-rose-300" />
+                  <span>Message Sent Secretly!</span>
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-300 max-w-sm mx-auto mt-2 leading-relaxed">
                   Your anonymous note has been delivered safely to <strong>@{userInfo.handle}</strong>'s inbox.

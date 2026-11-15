@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Heart, Eye, CheckCircle2, Lock } from 'lucide-react';
+import { Camera, Heart, Eye, CheckCircle2, Lock, X } from 'lucide-react';
 import { ProposalConfig, MemoryPolaroid } from '../../types';
 import { playPopSound } from '../../utils/audio';
 import { trackEvent } from '../../services/api';
@@ -145,9 +145,10 @@ export const Chapter3Polaroids: React.FC<Chapter3PolaroidsProps> = ({ config, on
                 </span>
                 <button
                   onClick={() => setSelectedPolaroid(null)}
-                  className="text-xs text-rose-400 hover:text-rose-600 font-bold cursor-pointer"
+                  className="text-xs text-rose-400 hover:text-rose-600 font-bold cursor-pointer flex items-center gap-1"
                 >
-                  Close ✕
+                  <span>Close</span>
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
               <p className="text-slate-700 font-handwriting text-lg sm:text-xl leading-relaxed">

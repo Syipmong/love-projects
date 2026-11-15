@@ -147,11 +147,11 @@ async function notifyCreatorProposalOpened(proposal: DbProposal): Promise<void> 
   }
   lastOpenedEmailAlert.set(proposal.id, now);
 
-  const subject = `👀 ${proposal.partner_name} just opened your proposal story! (${proposal.slug})`;
+  const subject = `${proposal.partner_name} just opened your proposal story! (${proposal.slug})`;
   const htmlBody = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 28px; background: #fff1f2; color: #1e293b; border-radius: 16px; max-width: 600px; margin: 0 auto; border: 1px solid #fecdd3;">
       <div style="text-align: center; margin-bottom: 20px;">
-        <span style="font-size: 36px;">👀💕</span>
+        <div style="display: inline-block; width: 44px; height: 44px; line-height: 44px; border-radius: 50%; background: #ffe4e6; color: #e11d48; font-size: 20px; font-weight: bold;">♥</div>
         <h2 style="color: #e11d48; margin: 8px 0 4px 0; font-size: 24px;">She Just Opened Your Proposal!</h2>
         <p style="color: #64748b; font-size: 14px; margin: 0;">Your romantic story is being read right now.</p>
       </div>
@@ -162,7 +162,7 @@ async function notifyCreatorProposalOpened(proposal: DbProposal): Promise<void> 
           <strong>${proposal.partner_name}</strong> just opened your personalized proposal link (<strong style="color: #e11d48;">${proposal.slug}</strong>). She has arrived at Chapter 1!
         </p>
         <p style="margin: 0; font-size: 13px; color: #64748b;">
-          🕒 Opened at: <strong>${new Date().toLocaleTimeString()} (${new Date().toLocaleDateString()})</strong>
+          Opened at: <strong>${new Date().toLocaleTimeString()} (${new Date().toLocaleDateString()})</strong>
         </p>
       </div>
 
@@ -347,10 +347,10 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
         sendZeptoMail({
           toEmail: creatorEmail,
           toName: senderClean,
-          subject: `💖 Your proposal for ${partnerClean} is ready! (Code: ${uniqueCode})`,
+          subject: `Your proposal for ${partnerClean} is ready! (Code: ${uniqueCode})`,
           htmlBody: `
             <div style="font-family: Arial, sans-serif; padding: 24px; background: #fff1f2; color: #333; border-radius: 12px;">
-              <h2 style="color: #e11d48;">Your Romantic Proposal Is Live 💕</h2>
+              <h2 style="color: #e11d48;">Your Romantic Proposal Is Live</h2>
               <p>Hey ${senderClean}, your proposal for <strong>${partnerClean}</strong> is ready.</p>
               <p><strong>Your 6-Character Share Code:</strong> <span style="font-size: 20px; font-weight: bold; color: #e11d48; letter-spacing: 2px;">${uniqueCode}</span></p>
               <p><strong>Your Direct Share Link:</strong></p>
