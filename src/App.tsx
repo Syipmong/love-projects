@@ -189,26 +189,27 @@ export const App: React.FC = () => {
       <FloatingHearts />
 
       {/* Top Controls Bar */}
-      <header className="relative z-30 flex items-center justify-between max-w-2xl w-full mx-auto px-4 mb-4 gap-2 flex-wrap">
-        <div className="flex items-center gap-2">
-          {/* Quick Personalize Button */}
-          <button
-            onClick={() => setIsCustomizeOpen(true)}
-            className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-white/80 hover:bg-white text-slate-600 hover:text-rose-600 shadow-sm backdrop-blur-md border border-rose-100 transition-all flex items-center gap-1.5 cursor-pointer text-xs font-semibold"
-            title="Quick customize names and question"
-          >
-            <Settings className="w-3.5 h-3.5 text-rose-500" />
-            <span className="hidden sm:inline">Quick Edit</span>
-          </button>
-
+      <header className="relative z-30 flex items-center justify-between max-w-2xl w-full mx-auto px-2 sm:px-4 mb-3 sm:mb-4 gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Standalone Dashboard Page Button */}
           <button
             onClick={() => setViewMode('dashboard')}
-            className="p-2 sm:px-3.5 sm:py-1.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-md backdrop-blur-md transition-all flex items-center gap-1.5 cursor-pointer text-xs font-bold"
+            className="px-2.5 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-md backdrop-blur-md transition-all flex items-center gap-1.5 cursor-pointer text-[11px] sm:text-xs font-bold shrink-0"
             title="Open Standalone Creator Dashboard"
           >
             <BarChart3 className="w-3.5 h-3.5" />
-            <span>Dashboard Studio</span>
+            <span className="hidden xs:inline">Dashboard</span>
+            <span className="xs:hidden">Studio</span>
+          </button>
+
+          {/* Quick Personalize Button */}
+          <button
+            onClick={() => setIsCustomizeOpen(true)}
+            className="p-1.5 sm:px-3 sm:py-1.5 rounded-full bg-white/80 hover:bg-white text-slate-600 hover:text-rose-600 shadow-sm backdrop-blur-md border border-rose-100 transition-all flex items-center gap-1 cursor-pointer text-[11px] sm:text-xs font-semibold shrink-0"
+            title="Quick customize names and question"
+          >
+            <Settings className="w-3.5 h-3.5 text-rose-500" />
+            <span className="hidden sm:inline">Edit</span>
           </button>
 
           {/* Theme Selector */}

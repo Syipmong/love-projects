@@ -184,28 +184,28 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
           </div>
         </div>
 
-        <div className="bg-white/80 rounded-2xl p-6 border border-rose-100 shadow-sm text-center space-y-4">
-          <p className="text-xs uppercase tracking-widest text-rose-400 font-bold">This certifies that</p>
-          <div className="flex items-center justify-center gap-3 text-2xl sm:text-3xl font-bold text-rose-600 font-handwriting">
+        <div className="bg-white/80 rounded-2xl p-4 sm:p-6 border border-rose-100 shadow-sm text-center space-y-3 sm:space-y-4">
+          <p className="text-[10px] sm:text-xs uppercase tracking-widest text-rose-400 font-bold">This certifies that</p>
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xl sm:text-3xl font-bold text-rose-600 font-handwriting">
             <span className="underline decoration-rose-300 underline-offset-4">{config.partnerName}</span>
-            <Heart className="w-6 h-6 fill-rose-500 text-rose-500 shrink-0" />
+            <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-rose-500 text-rose-500 shrink-0" />
             <span className="underline decoration-rose-300 underline-offset-4">{config.senderName}</span>
           </div>
-          <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-md mx-auto">
+          <p className="text-slate-600 text-xs sm:text-base leading-relaxed max-w-md mx-auto">
             Have officially agreed to share smiles, laughs, late-night talks, good food,
             and an endless adventure together.
           </p>
-          <div className="pt-2 flex justify-center items-center gap-6 text-xs text-slate-500">
+          <div className="pt-2 flex flex-wrap justify-center items-center gap-4 sm:gap-6 text-xs text-slate-500">
             <div>
-              <div className="font-handwriting text-lg text-rose-600 font-bold">{config.senderName}</div>
-              <div className="border-t border-slate-300 pt-0.5">Signature</div>
+              <div className="font-handwriting text-base sm:text-lg text-rose-600 font-bold">{config.senderName}</div>
+              <div className="border-t border-slate-300 pt-0.5 text-[10px]">Signature</div>
             </div>
-            <div className="w-12 h-12 rounded-full border-2 border-rose-300 flex items-center justify-center bg-rose-50 text-rose-500 shadow-inner">
-              <span className="text-[10px] font-black uppercase text-center leading-none">SEAL OF<br/>LOVE</span>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-rose-300 flex items-center justify-center bg-rose-50 text-rose-500 shadow-inner">
+              <span className="text-[8px] sm:text-[10px] font-black uppercase text-center leading-none">SEAL OF<br/>LOVE</span>
             </div>
             <div>
-              <div className="font-handwriting text-lg text-rose-600 font-bold">{config.partnerName}</div>
-              <div className="border-t border-slate-300 pt-0.5">Partner in Crime</div>
+              <div className="font-handwriting text-base sm:text-lg text-rose-600 font-bold">{config.partnerName}</div>
+              <div className="border-t border-slate-300 pt-0.5 text-[10px]">Partner in Crime</div>
             </div>
           </div>
         </div>

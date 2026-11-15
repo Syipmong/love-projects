@@ -52,7 +52,7 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
     }
   }, [noCount]);
 
-  // Evasive movement across the whole screen ensuring it NEVER hides behind YES
+  // Evasive movement across mobile and desktop viewport
   const dodgeButton = () => {
     setIsDodging(true);
     playEvasionSound();
@@ -61,28 +61,26 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
     const vpWidth = window.innerWidth;
     const vpHeight = window.innerHeight;
 
-    // Button dimensions estimate
-    const btnW = 100;
-    const btnH = 40;
+    // Approximate button bounds
+    const btnW = 90;
+    const btnH = 38;
 
-    // Safe bounds across viewport
-    const minX = 24;
-    const maxX = Math.max(minX + 50, vpWidth - btnW - 24);
-    const minY = 80; // keep below top bar
-    const maxY = Math.max(minY + 50, vpHeight - btnH - 60);
+    // Safe margins on mobile
+    const minX = 16;
+    const maxX = Math.max(minX + 40, vpWidth - btnW - 16);
+    const minY = 75; // below header
+    const maxY = Math.max(minY + 40, vpHeight - btnH - 75);
 
-    // Pick random position across viewport
     let randomX = Math.random() * (maxX - minX) + minX;
     let randomY = Math.random() * (maxY - minY) + minY;
 
-    // When YES gets huge in center screen, push NO towards edges/corners so it's clearly visible
-    if (noCount >= 4) {
+    // When YES gets huge, push NO towards edges so it is always accessible and visible
+    if (noCount >= 3) {
       const centerX = vpWidth / 2;
       const centerY = vpHeight / 2;
-      // If generated coord is too close to center, push to one of the 4 outer perimeter zones
-      if (Math.abs(randomX - centerX) < 140 && Math.abs(randomY - centerY) < 140) {
-        randomX = Math.random() > 0.5 ? Math.random() * 120 + minX : maxX - Math.random() * 120;
-        randomY = Math.random() > 0.5 ? Math.random() * 80 + minY : maxY - Math.random() * 80;
+      if (Math.abs(randomX - centerX) < 110 && Math.abs(randomY - centerY) < 110) {
+        randomX = Math.random() > 0.5 ? Math.random() * 80 + minX : maxX - Math.random() * 80;
+        randomY = Math.random() > 0.5 ? Math.random() * 60 + minY : maxY - Math.random() * 60;
       }
     }
 
@@ -92,40 +90,39 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
     });
   };
 
-  // Yes grows massive to outgrow and cover the screen
-  const yesScale = 1 + Math.min(noCount * 0.38, 5.5);
-  // No gets tinier and tinier
-  const noScale = Math.max(0.35, 1 - noCount * 0.08);
+  // Dynamic sizing clamped for mobile responsiveness
+  const yesScale = 1 + Math.min(noCount * 0.28, 3.8);
+  const noScale = Math.max(0.42, 1 - noCount * 0.07);
   const noText = NO_BUTTON_TEXTS[Math.min(noCount, NO_BUTTON_TEXTS.length - 1)];
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.92, y: 20 }}
+      initial={{ opacity: 0, scale: 0.94, y: 15 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="w-full max-w-xl mx-auto px-4 z-10 relative"
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full max-w-xl mx-auto px-3 sm:px-4 z-10 relative"
     >
-      <div className="glass-card rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden text-center border-2 border-pink-200/80">
+      <div className="glass-card rounded-3xl p-5 sm:p-10 shadow-2xl relative overflow-hidden text-center border-2 border-pink-200/80">
         {/* Top badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-4 shadow-sm">
-          <Bookmark className="w-3.5 h-3.5 text-rose-500" />
+        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-100 text-rose-700 text-[11px] sm:text-xs font-semibold tracking-wide uppercase mb-3 shadow-sm">
+          <Bookmark className="w-3 h-3 text-rose-500" />
           <span>Chapter 5: The Question for {partnerName}</span>
-          <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
+          <Heart className="w-3 h-3 fill-rose-500 text-rose-500" />
         </div>
 
-        {/* Mascot */}
-        <div className="relative flex flex-col items-center justify-center my-3 sm:my-4 min-h-[160px]">
+        {/* Mascot with Speech Bubble */}
+        <div className="relative flex flex-col items-center justify-center my-2 sm:my-4 min-h-[140px] sm:min-h-[160px]">
           <AnimatePresence>
             {speechBubble && (
               <motion.div
                 key={speechBubble}
-                initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                initial={{ opacity: 0, y: 8, scale: 0.85 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.8 }}
-                className="absolute -top-6 sm:-top-8 bg-white/95 px-4 py-1.5 rounded-2xl shadow-lg border border-pink-200 text-rose-600 font-semibold text-xs sm:text-sm flex items-center gap-1.5 z-20 pointer-events-none"
+                exit={{ opacity: 0, y: -8, scale: 0.85 }}
+                className="absolute -top-7 sm:-top-8 bg-white/95 px-3.5 py-1 rounded-2xl shadow-lg border border-pink-200 text-rose-600 font-semibold text-[11px] sm:text-xs flex items-center gap-1.5 z-20 pointer-events-none max-w-[90vw]"
               >
-                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-                <span>{speechBubble}</span>
+                <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                <span className="truncate">{speechBubble}</span>
               </motion.div>
             )}
           </AnimatePresence>
@@ -135,7 +132,7 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
             initial={{ scale: 0.85, opacity: 0.6 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-            className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl flex items-center justify-center overflow-hidden bg-rose-50/50 p-2 shadow-inner border border-rose-100"
+            className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl flex items-center justify-center overflow-hidden bg-rose-50/50 p-2 shadow-inner border border-rose-100"
           >
             <img
               src={getMascot()}
@@ -146,21 +143,21 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
           </motion.div>
         </div>
 
-        {/* Question */}
-        <div className="space-y-2 mb-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-rose-600 tracking-tight leading-tight drop-shadow-sm font-romantic">
+        {/* Romantic Proposal Question */}
+        <div className="space-y-1.5 mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-rose-600 tracking-tight leading-tight drop-shadow-sm font-romantic px-1">
             {question}
           </h1>
           {subheading && (
-            <p className="text-slate-600 text-sm sm:text-base font-medium max-w-md mx-auto">
+            <p className="text-slate-600 text-xs sm:text-base font-medium max-w-md mx-auto px-2">
               {subheading}
             </p>
           )}
         </div>
 
-        {/* The Action Arena */}
-        <div className="relative min-h-[160px] flex items-center justify-center pt-2">
-          {/* YES BUTTON: Expands and outgrows */}
+        {/* Interactive Buttons Arena */}
+        <div className="relative min-h-[130px] sm:min-h-[150px] flex items-center justify-center pt-2">
+          {/* YES BUTTON */}
           <motion.button
             onClick={() => {
               playPopSound();
@@ -169,23 +166,22 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
             animate={{
               scale: yesScale,
             }}
-            whileHover={{ scale: yesScale * 1.04 }}
-            whileTap={{ scale: yesScale * 0.96 }}
+            whileHover={{ scale: yesScale * 1.03 }}
+            whileTap={{ scale: yesScale * 0.97 }}
             transition={{ type: 'spring', stiffness: 320, damping: 20 }}
-            className="relative z-10 px-8 py-4 sm:px-10 sm:py-5 rounded-full font-bold text-white shadow-2xl flex items-center justify-center gap-3 cursor-pointer transition-colors duration-200"
+            className="relative z-10 px-7 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-white shadow-2xl flex items-center justify-center gap-2 sm:gap-3 cursor-pointer transition-colors max-w-[85vw]"
             style={{
               background: 'linear-gradient(135deg, #f43f5e 0%, #e11d48 50%, #be123c 100%)',
-              boxShadow: `0 15px 40px rgba(244, 63, 94, ${Math.min(0.4 + noCount * 0.08, 0.9)})`,
-              fontSize: `${Math.min(1.2 + noCount * 0.15, 2.4)}rem`,
-              maxWidth: noCount >= 8 ? '90vw' : 'auto',
+              boxShadow: `0 12px 35px rgba(244, 63, 94, ${Math.min(0.4 + noCount * 0.08, 0.85)})`,
+              fontSize: `${Math.min(1.1 + noCount * 0.12, 1.8)}rem`,
             }}
           >
-            <Heart className="w-6 h-6 fill-white animate-pulse" />
+            <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-white animate-pulse shrink-0" />
             <span className="tracking-wide">YES!</span>
-            <Heart className="w-6 h-6 fill-white" />
+            <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-white shrink-0" />
           </motion.button>
 
-          {/* RUNAWAY NO BUTTON: Positioned with FIXED so it's always in front and never hidden */}
+          {/* RUNAWAY NO BUTTON: Fixed on screen, never hidden behind YES */}
           <motion.button
             ref={noButtonRef}
             onClick={dodgeButton}
@@ -211,12 +207,12 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
               damping: 24,
               mass: 0.4
             }}
-            className={`px-4 py-2 rounded-full font-medium text-slate-700 bg-white/95 hover:bg-slate-50 border border-slate-300 shadow-xl cursor-pointer select-none whitespace-nowrap transition-colors ${
-              isDodging ? 'fixed' : 'ml-6'
+            className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full font-medium text-slate-700 bg-white/95 hover:bg-slate-50 border border-slate-300 shadow-xl cursor-pointer select-none whitespace-nowrap transition-colors touch-none ${
+              isDodging ? 'fixed' : 'ml-4 sm:ml-6'
             }`}
             style={{
-              zIndex: 9999, // ALWAYS above the Yes button, never hidden behind
-              fontSize: `${Math.max(0.7, 0.95 - noCount * 0.05)}rem`,
+              zIndex: 9999,
+              fontSize: `${Math.max(0.68, 0.9 - noCount * 0.04)}rem`,
             }}
           >
             {noText}
@@ -224,24 +220,24 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
         </div>
 
         {/* Footer info */}
-        <div className="mt-8 pt-4 border-t border-rose-100/80 flex items-center justify-between text-xs text-rose-400 font-medium">
+        <div className="mt-6 pt-3 sm:pt-4 border-t border-rose-100/80 flex items-center justify-between text-[11px] sm:text-xs text-rose-400 font-medium">
           <span>From: {senderName}</span>
-          <span>{noCount > 0 ? `Playful teases: ${noCount}` : 'Choose with your heart'}</span>
+          <span>{noCount > 0 ? `Teases: ${noCount}` : 'Choose with your heart'}</span>
         </div>
       </div>
 
-      {/* ROMANTIC RESPECTFUL ESCAPE HATCH (when she genuinely wants to say no) */}
+      {/* ROMANTIC RESPECTFUL ESCAPE HATCH */}
       <AnimatePresence>
-        {noCount >= 5 && (
+        {noCount >= 4 && (
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 15 }}
-            className="mt-6 text-center z-30"
+            exit={{ opacity: 0, y: 10 }}
+            className="mt-4 sm:mt-6 text-center z-30 px-2"
           >
-            <div className="inline-block bg-white/95 backdrop-blur-md px-5 py-3 rounded-2xl border border-rose-200 shadow-lg text-xs text-slate-600 max-w-md mx-auto">
-              <p className="mb-1.5 text-slate-500 font-normal">
-                I never want to force you. If your heart is truly saying no, I promise to always respect and cherish you.
+            <div className="inline-block bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-rose-200 shadow-md text-[11px] sm:text-xs text-slate-600 max-w-sm mx-auto">
+              <p className="mb-1 text-slate-500 font-normal">
+                I never want to force you. If your heart is truly saying no, I promise to always respect and care for you.
               </p>
               <button
                 onClick={() => {
