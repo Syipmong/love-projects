@@ -3,18 +3,26 @@ import { motion } from 'framer-motion';
 import { Heart, BookOpen, Bookmark } from 'lucide-react';
 import { ProposalConfig } from '../../types';
 import { playPopSound } from '../../utils/audio';
+import { trackEvent } from '../../services/api';
 
 interface Chapter1IntroProps {
   config: ProposalConfig;
   onBegin: () => void;
+  proposalId?: string;
 }
 
-export const Chapter1Intro: React.FC<Chapter1IntroProps> = ({ config, onBegin }) => {
+export const Chapter1Intro: React.FC<Chapter1IntroProps> = ({ config, onBegin, proposalId = 'default' }) => {
   const [openedEnvelope, setOpenedEnvelope] = useState(false);
 
   const handleOpen = () => {
     playPopSound();
     setOpenedEnvelope(true);
+    trackEvent('envelope_opened', 0, { partner: config.partnerName }, proposalId);
+  };
+
+  const handleStartStory = () => {
+    trackEvent('story_started', 0, { sender: config.senderName, partner: config.partnerName }, proposalId);
+    onBegin();
   };
 
   return (

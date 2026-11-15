@@ -7,14 +7,18 @@ import { playPopSound } from '../utils/audio';
 
 interface RomanticQuizCardProps {
   quiz: RomanticQuiz;
+  onAnswer?: (option: { text: string; icon: string; response: string }, index: number) => void;
 }
 
-export const RomanticQuizCard: React.FC<RomanticQuizCardProps> = ({ quiz }) => {
+export const RomanticQuizCard: React.FC<RomanticQuizCardProps> = ({ quiz, onAnswer }) => {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
   const handleSelect = (idx: number) => {
     playPopSound();
     setSelectedIdx(idx);
+    if (onAnswer && quiz.options[idx]) {
+      onAnswer(quiz.options[idx], idx);
+    }
   };
 
   return (
