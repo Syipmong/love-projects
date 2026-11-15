@@ -494,7 +494,42 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                   </span>
                 </button>
 
-                {/* Tab 2: Story Customizer */}
+                {/* Tab 2: Anonymoux Secret Messages */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('anonymous');
+                    loadAnonymousInbox();
+                  }}
+                  className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer select-none shrink-0 ${
+                    activeTab === 'anonymous'
+                      ? 'text-slate-900'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                  }`}
+                >
+                  {activeTab === 'anonymous' && (
+                    <motion.div
+                      layoutId="activeDashboardTab"
+                      className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-200/70"
+                      transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2">
+                    <MessageSquare className={`w-4 h-4 transition-colors ${activeTab === 'anonymous' ? 'text-purple-600' : 'text-slate-500'}`} />
+                    <span>Anonymoux Inbox</span>
+                    <span
+                      className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
+                        activeTab === 'anonymous'
+                          ? 'bg-purple-100 text-purple-700'
+                          : 'bg-slate-200/80 text-slate-600'
+                      }`}
+                    >
+                      {anonymousMessages.length}
+                    </span>
+                  </span>
+                </button>
+
+                {/* Tab 3: Story Customizer */}
                 <button
                   type="button"
                   onClick={() => setActiveTab('editor')}
