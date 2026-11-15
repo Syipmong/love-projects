@@ -92,9 +92,10 @@ export async function initDb(): Promise<void> {
       );
     `);
 
-    // Add handle column to users if not present
+    // Add handle column to users if not present and enforce case-insensitive unique index
     await client.query(`
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS handle VARCHAR(64) UNIQUE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS handle VARCHAR(64);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_users_handle_lower_unique ON users (LOWER(handle));
     `);
 
     // Indexes

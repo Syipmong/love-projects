@@ -210,7 +210,7 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
     // 2. Auth: Register
     if (req.method === 'POST' && pathname === '/api/auth/register') {
       const body = await parseJsonBody<{ email?: string; password?: string; name?: string; handle?: string }>(req);
-      const { email, password, name } = body;
+      const { email, password, name, handle } = body;
 
       if (!email || !password) {
         return sendJson(res, 400, { error: 'Email and password are required' });
@@ -222,30 +222,65 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
         return sendJson(res, 400, { error: 'An account with this email already exists' });
       }
 
+      // Enforce unique, permanent @username handle
+      const cleanHandle = (handle || '').toLowerCase().trim().replace(/^@/, '').replace(/[^a-z0-9_]/g, '');
+      if (!cleanHandle || cleanHandle.length < 3 || cleanHandle.length > 24) {
+        return sendJson(res, 400, {
+          error: 'A unique username between 3 and 24 characters (letters, numbers, underscores) is required.'
+        });
+      }
+
+      const RESERVED_HANDLES = [
+        'admin', 'api', 'root', 'support', 'help', 'system', 'anonymoux', 'u', 'dashboard',
+        'story', 'settings', 'user', 'terms', 'privacy', 'login', 'register', 'status', 'default', 'explore'
+      ];
+      if (RESERVED_HANDLES.includes(cleanHandle)) {
+        return sendJson(res, 400, { error: `Username @${cleanHandle} is reserved. Please choose another.` });
+      }
+
+      const handleCheck = await pool.query('SELECT id FROM users WHERE LOWER(handle) = LOWER($1)', [cleanHandle]);
+      if (handleCheck.rows.length > 0) {
+        return sendJson(res, 400, { error: `Username @${cleanHandle} is already taken. Please choose another.` });
+      }
+
       const userId = `usr_${crypto.randomBytes(12).toString('hex')}`;
       const pwHash = hashPassword(password);
       const userName = name?.trim() || cleanEmail.split('@')[0];
-
-      const baseHandle = (body.handle || userName)
-        .toLowerCase()
-        .replace(/[^a-z0-9_]/g, '')
-        .slice(0, 24) || `user_${crypto.randomBytes(3).toString('hex')}`;
-      let userHandle = baseHandle;
-      const handleCheck = await pool.query('SELECT id FROM users WHERE handle = $1', [userHandle]);
-      if (handleCheck.rows.length > 0) {
-        userHandle = `${baseHandle}_${crypto.randomBytes(2).toString('hex')}`;
-      }
 
       const query = `
         INSERT INTO users (id, email, password_hash, name, handle)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING id, email, name, handle, created_at;
       `;
-      const result = await pool.query(query, [userId, cleanEmail, pwHash, userName, userHandle]);
+      const result = await pool.query(query, [userId, cleanEmail, pwHash, userName, cleanHandle]);
       const user = result.rows[0];
       const token = createSessionToken(user.id, user.email);
 
       return sendJson(res, 200, { success: true, token, user });
+    }
+
+    // 2.5 Auth: Check Handle Availability
+    if (req.method === 'GET' && pathname === '/api/auth/check-handle') {
+      const handleParam = url.searchParams.get('handle') || '';
+      const cleanHandle = handleParam.toLowerCase().trim().replace(/^@/, '').replace(/[^a-z0-9_]/g, '');
+      if (!cleanHandle || cleanHandle.length < 3) {
+        return sendJson(res, 200, { available: false, error: 'Username must be at least 3 characters' });
+      }
+      if (cleanHandle.length > 24) {
+        return sendJson(res, 200, { available: false, error: 'Username must be 24 characters or less' });
+      }
+      const RESERVED_HANDLES = [
+        'admin', 'api', 'root', 'support', 'help', 'system', 'anonymoux', 'u', 'dashboard',
+        'story', 'settings', 'user', 'terms', 'privacy', 'login', 'register', 'status', 'default', 'explore'
+      ];
+      if (RESERVED_HANDLES.includes(cleanHandle)) {
+        return sendJson(res, 200, { available: false, error: 'This username is reserved' });
+      }
+      const handleCheck = await pool.query('SELECT id FROM users WHERE LOWER(handle) = LOWER($1)', [cleanHandle]);
+      if (handleCheck.rows.length > 0) {
+        return sendJson(res, 200, { available: false, error: 'Username is already taken' });
+      }
+      return sendJson(res, 200, { available: true, handle: cleanHandle });
     }
 
     // 3. Auth: Login
@@ -721,18 +756,39 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       return sendJson(res, 200, { success: true });
     }
 
-    // 18. Update User Handle
+    // 18. Set User Handle (Strictly One-Time Claim Only - Cannot be edited once set)
     if (req.method === 'PUT' && pathname === '/api/auth/handle') {
       const auth = getAuthUser(req);
       if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
 
-      const body = await parseJsonBody<{ handle?: string }>(req);
-      const newHandle = body.handle?.toLowerCase().trim().replace(/[^a-z0-9_]/g, '').slice(0, 30);
-      if (!newHandle) return sendJson(res, 400, { error: 'Invalid handle format' });
+      // Verify whether the user already has a handle set
+      const userRes = await pool.query<DbUser>('SELECT id, handle FROM users WHERE id = $1', [auth.userId]);
+      const currentHandle = userRes.rows[0]?.handle;
+      if (currentHandle && currentHandle.trim().length > 0) {
+        return sendJson(res, 400, {
+          error: 'Your username is permanent and cannot be edited once set.'
+        });
+      }
 
-      const existing = await pool.query('SELECT id FROM users WHERE handle = $1 AND id != $2', [newHandle, auth.userId]);
+      const body = await parseJsonBody<{ handle?: string }>(req);
+      const newHandle = body.handle?.toLowerCase().trim().replace(/^@/, '').replace(/[^a-z0-9_]/g, '').slice(0, 24);
+      if (!newHandle || newHandle.length < 3) {
+        return sendJson(res, 400, {
+          error: 'Username must be between 3 and 24 characters (letters, numbers, underscores)'
+        });
+      }
+
+      const RESERVED_HANDLES = [
+        'admin', 'api', 'root', 'support', 'help', 'system', 'anonymoux', 'u', 'dashboard',
+        'story', 'settings', 'user', 'terms', 'privacy', 'login', 'register', 'status', 'default', 'explore'
+      ];
+      if (RESERVED_HANDLES.includes(newHandle)) {
+        return sendJson(res, 400, { error: `Username @${newHandle} is reserved. Please choose another.` });
+      }
+
+      const existing = await pool.query('SELECT id FROM users WHERE LOWER(handle) = LOWER($1) AND id != $2', [newHandle, auth.userId]);
       if (existing.rows.length > 0) {
-        return sendJson(res, 400, { error: 'This handle is already taken' });
+        return sendJson(res, 400, { error: `Username @${newHandle} is already taken. Please choose another.` });
       }
 
       await pool.query('UPDATE users SET handle = $1 WHERE id = $2', [newHandle, auth.userId]);

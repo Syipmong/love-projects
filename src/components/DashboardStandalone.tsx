@@ -85,6 +85,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [nameInput, setNameInput] = useState('');
+  const [registerHandleInput, setRegisterHandleInput] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
 
@@ -376,7 +377,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
     const res =
       authMode === 'login'
         ? await loginUser(emailInput, passwordInput)
-        : await registerUser(emailInput, passwordInput, nameInput);
+        : await registerUser(emailInput, passwordInput, nameInput, registerHandleInput);
 
     setAuthLoading(false);
 
@@ -522,17 +523,49 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
 
             <form onSubmit={handleAuthSubmit} className="space-y-3.5 text-left">
               {authMode === 'register' && (
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Your Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={nameInput}
-                    onChange={(e) => setNameInput(e.target.value)}
-                    placeholder="e.g. Alex"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-400"
-                  />
-                </div>
+                <>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Your Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={nameInput}
+                      onChange={(e) => {
+                        setNameInput(e.target.value);
+                        if (!registerHandleInput) {
+                          setRegisterHandleInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24));
+                        }
+                      }}
+                      placeholder="e.g. Alex"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase">
+                        Anonymous @Username <strong className="text-rose-500">*</strong>
+                      </label>
+                      <span className="text-[10px] text-purple-600 font-semibold flex items-center gap-1">
+                        <Lock className="w-2.5 h-2.5" /> Permanent & unique
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-xs text-slate-400 font-bold">@</span>
+                      <input
+                        type="text"
+                        required
+                        value={registerHandleInput}
+                        onChange={(e) => setRegisterHandleInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24))}
+                        placeholder="unique_username"
+                        className="w-full pl-7 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 font-mono font-bold"
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1 leading-tight">
+                      Your confidential inbox: <span className="font-mono text-purple-600 font-semibold">anonymoux.aetechlabs.com/u/{registerHandleInput || 'username'}</span>. Cannot be changed once set.
+                    </p>
+                  </div>
+                </>
               )}
 
               <div>
@@ -879,31 +912,52 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                       </div>
                     </div>
 
-                    {/* Change Username Handle */}
-                    <div className="max-w-xs w-full sm:w-auto">
-                      <form onSubmit={handleSaveHandle} className="flex gap-2">
-                        <div className="relative flex-1">
-                          <span className="absolute left-2.5 top-2 text-xs text-purple-300 font-bold">@</span>
-                          <input
-                            type="text"
-                            value={handleInput}
-                            onChange={(e) => setHandleInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                            placeholder="username"
-                            className="w-full pl-6 pr-2 py-1.5 bg-white/15 rounded-lg text-xs font-bold text-white placeholder:text-purple-300 border border-white/20 focus:outline-hidden"
-                          />
+                    {/* Username Pill: Permanent once set, or claim once if empty */}
+                    {currentUser?.handle ? (
+                      <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md">
+                        <div className="w-7 h-7 rounded-lg bg-purple-500/30 text-purple-200 border border-purple-400/30 flex items-center justify-center shrink-0">
+                          <Lock className="w-3.5 h-3.5" />
                         </div>
-                        <button
-                          type="submit"
-                          disabled={isSavingHandle}
-                          className="px-3 py-1.5 bg-white text-purple-950 font-bold rounded-lg text-xs hover:bg-purple-100 cursor-pointer disabled:opacity-50 shrink-0"
-                        >
-                          Save
-                        </button>
-                      </form>
-                      {handleStatusMsg && (
-                        <p className="text-[11px] text-emerald-300 mt-1 font-medium">{handleStatusMsg}</p>
-                      )}
-                    </div>
+                        <div className="text-left">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-white text-xs sm:text-sm">@{currentUser.handle}</span>
+                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-purple-400/20 text-purple-200 border border-purple-400/30 uppercase tracking-wider">
+                              Permanent
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-purple-300/80 block">Cannot be edited once claimed</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="max-w-xs w-full sm:w-auto">
+                        <form onSubmit={handleSaveHandle} className="flex gap-2">
+                          <div className="relative flex-1">
+                            <span className="absolute left-2.5 top-2 text-xs text-purple-300 font-bold">@</span>
+                            <input
+                              type="text"
+                              required
+                              value={handleInput}
+                              onChange={(e) => setHandleInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 24))}
+                              placeholder="choose_username"
+                              className="w-full pl-6 pr-2 py-1.5 bg-white/15 rounded-lg text-xs font-bold text-white placeholder:text-purple-300 border border-white/20 focus:outline-hidden"
+                            />
+                          </div>
+                          <button
+                            type="submit"
+                            disabled={isSavingHandle || !handleInput.trim()}
+                            className="px-3 py-1.5 bg-white text-purple-950 font-bold rounded-lg text-xs hover:bg-purple-100 cursor-pointer disabled:opacity-50 shrink-0"
+                          >
+                            Set Username
+                          </button>
+                        </form>
+                        <p className="text-[10px] text-amber-300 mt-1 flex items-center gap-1 font-medium">
+                          <Lock className="w-2.5 h-2.5" /> Permanent: cannot be edited once saved.
+                        </p>
+                        {handleStatusMsg && (
+                          <p className="text-[11px] text-rose-300 mt-1 font-medium">{handleStatusMsg}</p>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Central Visual Story Sticker (Styled like Instagram / NGL story sticker) */}

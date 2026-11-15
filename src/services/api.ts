@@ -43,14 +43,19 @@ export function setStoredToken(token: string | null) {
 }
 
 /**
- * Register account
+ * Register account with unique permanent handle
  */
-export async function registerUser(email: string, password: string, name?: string): Promise<{ success: boolean; user?: AuthUser; token?: string; error?: string }> {
+export async function registerUser(
+  email: string,
+  password: string,
+  name?: string,
+  handle?: string
+): Promise<{ success: boolean; user?: AuthUser; token?: string; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name })
+      body: JSON.stringify({ email, password, name, handle })
     });
     const data = await res.json();
     if (!res.ok) return { success: false, error: data.error || 'Registration failed' };
@@ -59,6 +64,19 @@ export async function registerUser(email: string, password: string, name?: strin
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Network error';
     return { success: false, error: msg };
+  }
+}
+
+/**
+ * Check if a username / handle is available in real time
+ */
+export async function checkHandleAvailability(handle: string): Promise<{ available: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/check-handle?handle=${encodeURIComponent(handle)}`);
+    const data = await res.json();
+    return data;
+  } catch {
+    return { available: false, error: 'Could not verify username' };
   }
 }
 
