@@ -261,7 +261,7 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
 
     // 2.5 Auth: Check Handle Availability
     if (req.method === 'GET' && pathname === '/api/auth/check-handle') {
-      const handleParam = url.searchParams.get('handle') || '';
+      const handleParam = parsedUrl.searchParams.get('handle') || '';
       const cleanHandle = handleParam.toLowerCase().trim().replace(/^@/, '').replace(/[^a-z0-9_]/g, '');
       if (!cleanHandle || cleanHandle.length < 3) {
         return sendJson(res, 200, { available: false, error: 'Username must be at least 3 characters' });
