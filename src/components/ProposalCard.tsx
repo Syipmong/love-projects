@@ -103,7 +103,7 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
         {/* Soft top accent badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-4 shadow-sm">
           <Sparkles className="w-3.5 h-3.5 text-rose-500 animate-spin" style={{ animationDuration: '6s' }} />
-          <span>A message for {partnerName}</span>
+          <span>Chapter 5: The Question for {partnerName}</span>
           <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
         </div>
 
