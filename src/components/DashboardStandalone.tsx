@@ -28,8 +28,29 @@ import {
   Copy,
   ExternalLink,
   Lock,
-  MessageSquare
+  MessageSquare,
+  Instagram,
+  Ghost,
+  Twitter,
+  Facebook,
+  Download,
+  Dice5,
+  PartyPopper,
+  Activity,
+  X,
+  Send
 } from 'lucide-react';
+import {
+  generatePromptStoryCard,
+  generateReplyStoryCard,
+  downloadStoryImage,
+  shareStoryNative,
+  openInstagramStoryCamera,
+  openSnapchatCamera,
+  openWhatsAppShare,
+  openTwitterShare,
+  openFacebookShare
+} from '../utils/storyShare';
 import { ImagePickerModal } from './ImagePickerModal';
 import { CreateProposalModal } from './CreateProposalModal';
 import {
@@ -90,7 +111,19 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
   const [handleStatusMsg, setHandleStatusMsg] = useState<string | null>(null);
   const [copiedAnonLink, setCopiedAnonLink] = useState(false);
   const [copiedStoryCardId, setCopiedStoryCardId] = useState<number | null>(null);
-  const [showSocialModal, setShowSocialModal] = useState<string | null>(null);
+  const [showSocialModal, setShowSocialModal] = useState<{
+    platform: 'instagram' | 'snapchat';
+    dataUrl?: string;
+    url: string;
+  } | null>(null);
+  const [storyPrompt, setStoryPrompt] = useState('send me anonymous secret messages!');
+  const [isGeneratingStory, setIsGeneratingStory] = useState(false);
+  const [replyStoryModal, setReplyStoryModal] = useState<{
+    msg: AnonymousMessage;
+    dataUrl: string;
+    blob: Blob | null;
+    url: string;
+  } | null>(null);
 
   // Analytics State
   const [analyticsData, setAnalyticsData] = useState<any>(null);
@@ -173,8 +206,134 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
     setTimeout(() => setCopiedAnonLink(false), 2500);
   };
 
+  const handleShareToInstagramStory = async () => {
+    const activeHandle = currentUser?.handle || handleInput || 'user';
+    const url = `https://anonymoux.aetechlabs.com/u/${activeHandle}`;
+    setIsGeneratingStory(true);
+    try {
+      const { dataUrl, blob } = await generatePromptStoryCard({
+        handle: activeHandle,
+        prompt: storyPrompt
+      });
+      setIsGeneratingStory(false);
+
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopiedAnonLink(true);
+        setTimeout(() => setCopiedAnonLink(false), 2500);
+      } catch {}
+
+      // Trigger Web Share API if supported on mobile
+      await shareStoryNative({
+        title: 'Send me anonymous messages!',
+        text: `${storyPrompt}\n${url}`,
+        url,
+        blob,
+        filename: `anonymoux-${activeHandle}.png`
+      });
+
+      // Show Instagram guide modal with instant Open Instagram & Download buttons
+      setShowSocialModal({
+        platform: 'instagram',
+        dataUrl,
+        url
+      });
+    } catch {
+      setIsGeneratingStory(false);
+    }
+  };
+
+  const handleShareToSnapchatStory = async () => {
+    const activeHandle = currentUser?.handle || handleInput || 'user';
+    const url = `https://anonymoux.aetechlabs.com/u/${activeHandle}`;
+    try {
+      const { dataUrl, blob } = await generatePromptStoryCard({
+        handle: activeHandle,
+        prompt: storyPrompt
+      });
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {}
+      await shareStoryNative({
+        title: 'Send me anonymous messages!',
+        text: `${storyPrompt}\n${url}`,
+        url,
+        blob,
+        filename: `anonymoux-${activeHandle}.png`
+      });
+      setShowSocialModal({
+        platform: 'snapchat',
+        dataUrl,
+        url
+      });
+    } catch {}
+  };
+
+  const handleShareWhatsApp = () => {
+    const activeHandle = currentUser?.handle || handleInput || 'user';
+    const url = `https://anonymoux.aetechlabs.com/u/${activeHandle}`;
+    openWhatsAppShare(storyPrompt, url);
+  };
+
+  const handleShareTwitter = () => {
+    const activeHandle = currentUser?.handle || handleInput || 'user';
+    const url = `https://anonymoux.aetechlabs.com/u/${activeHandle}`;
+    openTwitterShare(storyPrompt, url);
+  };
+
+  const handleShareFacebook = () => {
+    const activeHandle = currentUser?.handle || handleInput || 'user';
+    const url = `https://anonymoux.aetechlabs.com/u/${activeHandle}`;
+    openFacebookShare(url);
+  };
+
+  const handleShareNative = async () => {
+    const activeHandle = currentUser?.handle || handleInput || 'user';
+    const url = `https://anonymoux.aetechlabs.com/u/${activeHandle}`;
+    const { blob } = await generatePromptStoryCard({
+      handle: activeHandle,
+      prompt: storyPrompt
+    });
+    await shareStoryNative({
+      title: 'Send me anonymous messages!',
+      text: `${storyPrompt}\n${url}`,
+      url,
+      blob,
+      filename: `anonymoux-${activeHandle}.png`
+    });
+  };
+
+  const handleDownloadPromptCard = async () => {
+    const activeHandle = currentUser?.handle || handleInput || 'user';
+    const { dataUrl } = await generatePromptStoryCard({
+      handle: activeHandle,
+      prompt: storyPrompt
+    });
+    downloadStoryImage(dataUrl, `anonymoux-${activeHandle}-story.png`);
+  };
+
+  const handleOpenReplyStory = async (msg: AnonymousMessage) => {
+    const activeHandle = currentUser?.handle || handleInput || 'user';
+    const url = `https://anonymoux.aetechlabs.com/u/${activeHandle}`;
+    try {
+      const { dataUrl, blob } = await generateReplyStoryCard({
+        handle: activeHandle,
+        message: msg.message,
+        senderHint: msg.sender_hint
+      });
+      setReplyStoryModal({
+        msg,
+        dataUrl,
+        blob,
+        url
+      });
+    } catch (err) {
+      console.error('Error generating reply card:', err);
+    }
+  };
+
   const copyStoryReplyText = (msg: AnonymousMessage) => {
-    const text = `🤫 Secret message received on Anonymoux:\n"${msg.message}"\n\n👉 Send me yours: https://anonymoux.aetechlabs.com/u/${currentUser?.handle || handleInput || 'user'}`;
+    const text = `Secret message received on Anonymoux:\n"${msg.message}"\n\nSend me yours: https://anonymoux.aetechlabs.com/u/${currentUser?.handle || handleInput || 'user'}`;
     navigator.clipboard.writeText(text);
     setCopiedStoryCardId(msg.id);
     setTimeout(() => setCopiedStoryCardId(null), 2500);
@@ -642,11 +801,16 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                                   : 'bg-rose-100 text-rose-700'
                               }`}
                             >
-                              {prop.latest_answer === 'yes'
-                                ? 'SAID YES! ❤️'
-                                : prop.latest_answer === 'no'
-                                ? 'Declined'
-                                : 'In Progress'}
+                              {prop.latest_answer === 'yes' ? (
+                                <span className="flex items-center gap-1">
+                                  <Heart className="w-3 h-3 fill-emerald-600 text-emerald-600" />
+                                  <span>SAID YES!</span>
+                                </span>
+                              ) : prop.latest_answer === 'no' ? (
+                                'Declined'
+                              ) : (
+                                'In Progress'
+                              )}
                             </span>
                           </div>
 
