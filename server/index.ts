@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { pool, initDb } from './db.ts';
 import { sendZeptoMail } from './email.ts';
 import { hashPassword, verifyPassword, createSessionToken, validateSessionToken } from './auth.ts';
+import { generate6CharAlphaNumericCode } from './utils.ts';
 import type { DbUser, DbProposal, DbEvent, DbResponse, DashboardAnalytics } from './types.ts';
 
 dotenv.config();
@@ -20,7 +21,7 @@ function sendJson(res: http.ServerResponse, statusCode: number, data: unknown): 
   res.writeHead(statusCode, {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   });
   res.end(JSON.stringify(data));
@@ -50,12 +51,27 @@ function getAuthUser(req: http.IncomingMessage): { userId: string; email: string
   return validateSessionToken(token);
 }
 
+/**
+ * Generates guaranteed unique 6-character alphanumeric code
+ */
+async function generateUnique6CharCode(): Promise<string> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const code = generate6CharAlphaNumericCode();
+    const existing = await pool.query('SELECT id FROM proposals WHERE slug = $1', [code]);
+    if (existing.rows.length === 0) {
+      return code;
+    }
+  }
+  // Fallback if collision
+  return crypto.randomBytes(3).toString('hex').toUpperCase();
+}
+
 const server = http.createServer(async (req: http.IncomingMessage, res: http.ServerResponse) => {
   // CORS Preflight
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     });
     return res.end();
@@ -141,7 +157,7 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       return sendJson(res, 200, result.rows[0]);
     }
 
-    // 5. Create or Update Proposal (Generates Unique Shareable Slug)
+    // 5. Create New Proposal (Generates Unique 6-Character Alphanumeric Code)
     if (req.method === 'POST' && pathname === '/api/proposals') {
       const auth = getAuthUser(req);
       const body = await parseJsonBody<{
@@ -149,17 +165,14 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
         sender_name: string;
         question: string;
         config_json?: Record<string, unknown>;
-        custom_slug?: string;
       }>(req);
 
       const partnerClean = body.partner_name?.trim() || 'My Favorite Person';
       const senderClean = body.sender_name?.trim() || 'Yours Truly';
       const questionClean = body.question?.trim() || 'Will you be my girlfriend?';
 
-      // Generate a unique, romantic URL slug: e.g. "for-sophia-k9x3"
-      const baseSlug = partnerClean.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'love';
-      const uniqueSuffix = crypto.randomBytes(3).toString('hex');
-      const slug = body.custom_slug?.trim() || `${baseSlug}-${uniqueSuffix}`;
+      // Guaranteed 6-character alphanumeric code (e.g. "K9X2M4")
+      const uniqueCode = await generateUnique6CharCode();
       const proposalId = `prop_${crypto.randomBytes(12).toString('hex')}`;
 
       const userId = auth ? auth.userId : null;
@@ -174,7 +187,7 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       const result = await pool.query<DbProposal>(query, [
         proposalId,
         userId,
-        slug,
+        uniqueCode,
         creatorEmail,
         senderClean,
         partnerClean,
@@ -185,38 +198,75 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
 
       const created = result.rows[0];
 
-      // If user has email, send confirmation via ZeptoMail
+      // If creator has an email, send confirmation
       if (creatorEmail) {
         sendZeptoMail({
           toEmail: creatorEmail,
           toName: senderClean,
-          subject: `💖 Your unique proposal for ${partnerClean} is live!`,
+          subject: `💖 Your proposal for ${partnerClean} is ready! (Code: ${uniqueCode})`,
           htmlBody: `
             <div style="font-family: Arial, sans-serif; padding: 24px; background: #fff1f2; color: #333; border-radius: 12px;">
-              <h2 style="color: #e11d48;">Your Romantic Proposal Is Ready! 💕</h2>
-              <p>Hey ${senderClean}, your personalized proposal for <strong>${partnerClean}</strong> has been created and saved to PostgreSQL.</p>
-              <p><strong>Your Unique Shareable Link:</strong></p>
-              <p><a href="http://localhost:5174/?p=${slug}" style="display: inline-block; padding: 10px 20px; background: #e11d48; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Open Proposal Story</a></p>
-              <p>You can monitor her progress, teases, and final answer live on your Creator Dashboard!</p>
+              <h2 style="color: #e11d48;">Your Romantic Proposal Is Live 💕</h2>
+              <p>Hey ${senderClean}, your proposal for <strong>${partnerClean}</strong> is ready.</p>
+              <p><strong>Your 6-Character Share Code:</strong> <span style="font-size: 20px; font-weight: bold; color: #e11d48; letter-spacing: 2px;">${uniqueCode}</span></p>
+              <p><strong>Your Direct Share Link:</strong></p>
+              <p><a href="http://localhost:5174/?p=${uniqueCode}" style="display: inline-block; padding: 10px 20px; background: #e11d48; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold;">Open Proposal Story</a></p>
+              <p>Track her live progress, teases, and final answer on your Creator Dashboard!</p>
             </div>
           `
         }).catch(console.error);
       }
 
-      return sendJson(res, 200, { success: true, proposal: created, shareUrl: `?p=${slug}` });
+      return sendJson(res, 200, { success: true, proposal: created, shareCode: uniqueCode, shareUrl: `?p=${uniqueCode}` });
     }
 
-    // 6. Fetch Proposal by Slug (For Partner Experience)
-    if (req.method === 'GET' && pathname.startsWith('/api/proposals/slug/')) {
-      const slug = pathname.replace('/api/proposals/slug/', '').trim();
-      const result = await pool.query<DbProposal>('SELECT * FROM proposals WHERE slug = $1', [slug]);
+    // 6. Update Proposal Configuration (Customizing all messages, milestones, polaroids, theme, etc.)
+    if (req.method === 'PUT' && pathname.startsWith('/api/proposals/')) {
+      const auth = getAuthUser(req);
+      const codeOrId = pathname.replace('/api/proposals/', '').trim();
+      const body = await parseJsonBody<{
+        partner_name?: string;
+        sender_name?: string;
+        question?: string;
+        config_json?: Record<string, unknown>;
+      }>(req);
+
+      const query = `
+        UPDATE proposals
+        SET partner_name = COALESCE($1, partner_name),
+            sender_name = COALESCE($2, sender_name),
+            question = COALESCE($3, question),
+            config_json = COALESCE($4, config_json)
+        WHERE slug = $5 OR id = $5
+        RETURNING *;
+      `;
+
+      const result = await pool.query<DbProposal>(query, [
+        body.partner_name || null,
+        body.sender_name || null,
+        body.question || null,
+        body.config_json || null,
+        codeOrId
+      ]);
+
+      if (result.rows.length === 0) {
+        return sendJson(res, 404, { error: 'Proposal not found' });
+      }
+
+      return sendJson(res, 200, { success: true, proposal: result.rows[0] });
+    }
+
+    // 7. Fetch Proposal by 6-Character Code
+    if (req.method === 'GET' && (pathname.startsWith('/api/proposals/code/') || pathname.startsWith('/api/proposals/slug/'))) {
+      const code = pathname.replace('/api/proposals/code/', '').replace('/api/proposals/slug/', '').trim();
+      const result = await pool.query<DbProposal>('SELECT * FROM proposals WHERE slug = $1 OR id = $1', [code]);
       if (result.rows.length === 0) {
         return sendJson(res, 404, { error: 'Proposal not found' });
       }
       return sendJson(res, 200, result.rows[0]);
     }
 
-    // 7. Fetch All Proposals for Authenticated User
+    // 8. Fetch All Proposals for Authenticated User
     if (req.method === 'GET' && pathname === '/api/proposals/user/all') {
       const auth = getAuthUser(req);
       if (!auth) {
@@ -235,7 +285,7 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       return sendJson(res, 200, result.rows);
     }
 
-    // 8. Record Telemetry Event
+    // 9. Record Telemetry Event
     if (req.method === 'POST' && pathname === '/api/events') {
       const body = await parseJsonBody<{
         proposal_id?: string;
@@ -255,7 +305,7 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       return sendJson(res, 200, { success: true, event: result.rows[0] });
     }
 
-    // 9. Record Final Response ('yes' | 'no') and Trigger ZeptoMail Alert
+    // 10. Record Final Response ('yes' | 'no') and Trigger Email Alert
     if (req.method === 'POST' && pathname === '/api/response') {
       const body = await parseJsonBody<{
         proposal_id?: string;
@@ -273,7 +323,7 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
         [pid, body.answer, body.tease_attempts || 0, body.notes || null]
       );
 
-      // Fetch proposal details to send email to creator
+      // Fetch proposal details to send email
       try {
         const propQuery = await pool.query<DbProposal>('SELECT * FROM proposals WHERE id = $1 OR slug = $1', [pid]);
         const proposal = propQuery.rows[0];
@@ -310,29 +360,25 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       return sendJson(res, 200, { success: true, response: result.rows[0] });
     }
 
-    // 10. Dashboard Analytics by Slug / ID
+    // 11. Dashboard Analytics by 6-Character Code / ID
     if (req.method === 'GET' && pathname.startsWith('/api/dashboard/')) {
-      const slugOrId = pathname.replace('/api/dashboard/', '').trim();
+      const codeOrId = pathname.replace('/api/dashboard/', '').trim();
 
-      // Fetch proposal by slug or ID
-      const propRes = await pool.query<DbProposal>('SELECT * FROM proposals WHERE slug = $1 OR id = $1', [slugOrId]);
+      const propRes = await pool.query<DbProposal>('SELECT * FROM proposals WHERE slug = $1 OR id = $1', [codeOrId]);
       const proposal = propRes.rows[0] || null;
-      const pid = proposal ? proposal.id : slugOrId;
+      const pid = proposal ? proposal.id : codeOrId;
 
-      // Fetch latest response
       const respRes = await pool.query<DbResponse>(
         'SELECT * FROM responses WHERE proposal_id = $1 ORDER BY created_at DESC LIMIT 1',
         [pid]
       );
       const latestResponse = respRes.rows[0] || null;
 
-      // Fetch total events
       const countRes = await pool.query<{ total_events: string }>(
         'SELECT COUNT(*) as total_events FROM events WHERE proposal_id = $1',
         [pid]
       );
 
-      // Event counts by type
       const typesRes = await pool.query<{ event_type: string; count: string }>(
         `SELECT event_type, COUNT(*) as count 
          FROM events 
@@ -341,7 +387,6 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
         [pid]
       );
 
-      // Latest 50 timeline events
       const timelineRes = await pool.query<DbEvent>(
         `SELECT * FROM events 
          WHERE proposal_id = $1 
@@ -372,5 +417,5 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
 });
 
 server.listen(PORT, () => {
-  console.log(`Strict TypeScript Backend server running on http://localhost:${PORT}`);
+  console.log(`Strict TypeScript Backend running on http://localhost:${PORT}`);
 });
