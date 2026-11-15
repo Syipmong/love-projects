@@ -493,12 +493,12 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
         if (proposal?.creator_email) {
           const isYes = body.answer === 'yes';
           const subject = isYes
-            ? `💖 ${proposal.partner_name} SAID YES! Proposal Accepted!`
+            ? `${proposal.partner_name} SAID YES! Proposal Accepted!`
             : `A message regarding your proposal to ${proposal.partner_name}`;
 
           const htmlBody = `
             <div style="font-family: Arial, sans-serif; padding: 24px; background: #fff1f2; color: #333; border-radius: 12px;">
-              <h1 style="color: ${isYes ? '#e11d48' : '#64748b'};">${isYes ? 'SHE SAID YES! 🎉🥰' : 'Proposal Response Received'}</h1>
+              <h1 style="color: ${isYes ? '#e11d48' : '#64748b'};">${isYes ? 'SHE SAID YES!' : 'Proposal Response Received'}</h1>
               <p><strong>${proposal.partner_name}</strong> just completed your proposal story!</p>
               <p><strong>Answer:</strong> <span style="font-size: 18px; color: ${isYes ? '#e11d48' : '#64748b'}; font-weight: bold;">${body.answer.toUpperCase()}</span></p>
               <p><strong>Playful tease attempts on "NO":</strong> ${body.tease_attempts || 0}</p>
@@ -634,11 +634,11 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
         sendZeptoMail({
           toEmail: recipientUser.email,
           toName: recipientUser.name,
-          subject: `💌 New anonymous secret message on Anonymoux!`,
+          subject: `New anonymous secret message on Anonymoux!`,
           htmlBody: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 28px; background: #faf5ff; color: #1e293b; border-radius: 16px; max-width: 600px; margin: 0 auto; border: 1px solid #e9d5ff;">
               <div style="text-align: center; margin-bottom: 20px;">
-                <span style="font-size: 36px;">🤫💌</span>
+                <div style="display: inline-block; width: 44px; height: 44px; line-height: 44px; border-radius: 50%; background: #f3e8ff; color: #9333ea; font-size: 20px; font-weight: bold;">✉</div>
                 <h2 style="color: #9333ea; margin: 8px 0 4px 0; font-size: 24px;">You Have A Secret Message!</h2>
                 <p style="color: #64748b; font-size: 14px; margin: 0;">Someone just sent you an anonymous note on anonymoux</p>
               </div>
