@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, AlertCircle, Bookmark } from 'lucide-react';
 import { NO_BUTTON_TEXTS, CUTE_REACTIONS } from '../config';
@@ -11,6 +12,7 @@ interface ProposalCardProps {
   subheading?: string;
   onAccept: () => void;
   onDecline: () => void;
+  onTease?: (attempts: number, speech?: string) => void;
 }
 
 export const ProposalCard: React.FC<ProposalCardProps> = ({
@@ -20,12 +22,14 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
   subheading,
   onAccept,
   onDecline,
+  onTease,
 }) => {
   const [noCount, setNoCount] = useState(0);
   const [noPosition, setNoPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDodging, setIsDodging] = useState(false);
   const [speechBubble, setSpeechBubble] = useState<string | null>(null);
   const noButtonRef = useRef<HTMLButtonElement>(null);
+  const yesBtnRef = useRef<HTMLButtonElement>(null);
 
   // Mascot progression
   const getMascot = () => {
@@ -52,41 +56,64 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
     }
   }, [noCount]);
 
-  // Evasive movement across mobile and desktop viewport
+  // Evasive movement across mobile and desktop viewport (rendered via Portal to prevent container clipping)
   const dodgeButton = () => {
     setIsDodging(true);
     playEvasionSound();
-    setNoCount((prev) => prev + 1);
+    const nextCount = noCount + 1;
+    setNoCount(nextCount);
+
+    if (onTease) {
+      onTease(nextCount, speechBubble || undefined);
+    }
 
     const vpWidth = window.innerWidth;
     const vpHeight = window.innerHeight;
 
     // Approximate button bounds
-    const btnW = 90;
-    const btnH = 38;
+    const btnW = 95;
+    const btnH = 40;
 
-    // Safe margins on mobile
-    const minX = 16;
-    const maxX = Math.max(minX + 40, vpWidth - btnW - 16);
-    const minY = 75; // below header
-    const maxY = Math.max(minY + 40, vpHeight - btnH - 75);
+    // Safe margins on mobile (clear notch, bottom bar, and side edges)
+    const minX = 20;
+    const maxX = Math.max(minX + 30, vpWidth - btnW - 20);
+    const minY = 85;
+    const maxY = Math.max(minY + 30, vpHeight - btnH - 85);
 
     let randomX = Math.random() * (maxX - minX) + minX;
     let randomY = Math.random() * (maxY - minY) + minY;
 
-    // When YES gets huge, push NO towards edges so it is always accessible and visible
-    if (noCount >= 3) {
-      const centerX = vpWidth / 2;
-      const centerY = vpHeight / 2;
-      if (Math.abs(randomX - centerX) < 110 && Math.abs(randomY - centerY) < 110) {
-        randomX = Math.random() > 0.5 ? Math.random() * 80 + minX : maxX - Math.random() * 80;
-        randomY = Math.random() > 0.5 ? Math.random() * 60 + minY : maxY - Math.random() * 60;
+    // Detect YES button position so NO NEVER overlaps or hides behind it
+    if (yesBtnRef.current) {
+      const yesRect = yesBtnRef.current.getBoundingClientRect();
+      const bufLeft = Math.max(0, yesRect.left - 40);
+      const bufRight = Math.min(vpWidth, yesRect.right + 40);
+      const bufTop = Math.max(0, yesRect.top - 40);
+      const bufBottom = Math.min(vpHeight, yesRect.bottom + 40);
+
+      if (
+        randomX + btnW > bufLeft &&
+        randomX < bufRight &&
+        randomY + btnH > bufTop &&
+        randomY < bufBottom
+      ) {
+        // If overlapping YES button, steer NO to outer screen perimeter
+        const edge = Math.floor(Math.random() * 4);
+        if (edge === 0) {
+          randomY = minY + Math.random() * 30;
+        } else if (edge === 1) {
+          randomY = maxY - Math.random() * 30;
+        } else if (edge === 2) {
+          randomX = minX + Math.random() * 30;
+        } else {
+          randomX = maxX - Math.random() * 30;
+        }
       }
     }
 
     setNoPosition({
-      x: Math.round(randomX),
-      y: Math.round(randomY)
+      x: Math.round(Math.max(minX, Math.min(maxX, randomX))),
+      y: Math.round(Math.max(minY, Math.min(maxY, randomY)))
     });
   };
 
@@ -159,6 +186,7 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
         <div className="relative min-h-[130px] sm:min-h-[150px] flex items-center justify-center pt-2">
           {/* YES BUTTON */}
           <motion.button
+            ref={yesBtnRef}
             onClick={() => {
               playPopSound();
               onAccept();
@@ -181,43 +209,51 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
             <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-white shrink-0" />
           </motion.button>
 
-          {/* RUNAWAY NO BUTTON: Fixed on screen, never hidden behind YES */}
+          {/* INLINE NO BUTTON (Initial resting state) */}
+          {!isDodging && (
+            <motion.button
+              ref={noButtonRef}
+              onClick={dodgeButton}
+              onMouseEnter={dodgeButton}
+              onTouchStart={dodgeButton}
+              className="ml-4 sm:ml-6 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full font-medium text-slate-700 bg-white/95 hover:bg-slate-50 border border-slate-300 shadow-md cursor-pointer select-none whitespace-nowrap transition-colors"
+              style={{
+                fontSize: '0.9rem',
+              }}
+            >
+              {noText}
+            </motion.button>
+          )}
+        </div>
+
+        {/* RUNAWAY NO BUTTON: Mounted directly to document.body via Portal so it NEVER gets trapped in card transform/overflow-hidden */}
+        {typeof document !== 'undefined' && isDodging && createPortal(
           <motion.button
             ref={noButtonRef}
             onClick={dodgeButton}
             onMouseEnter={dodgeButton}
-            onTouchStart={(e) => {
-              e.preventDefault();
-              dodgeButton();
+            onTouchStart={dodgeButton}
+            animate={{
+              left: `${noPosition.x}px`,
+              top: `${noPosition.y}px`,
+              scale: noScale,
             }}
-            animate={
-              isDodging
-                ? {
-                    left: `${noPosition.x}px`,
-                    top: `${noPosition.y}px`,
-                    scale: noScale,
-                  }
-                : {
-                    scale: 1,
-                  }
-            }
             transition={{
               type: 'spring',
               stiffness: 480,
               damping: 24,
               mass: 0.4
             }}
-            className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full font-medium text-slate-700 bg-white/95 hover:bg-slate-50 border border-slate-300 shadow-xl cursor-pointer select-none whitespace-nowrap transition-colors touch-none ${
-              isDodging ? 'fixed' : 'ml-4 sm:ml-6'
-            }`}
+            className="fixed px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full font-bold text-rose-700 bg-white/95 hover:bg-rose-50 border-2 border-rose-300 shadow-2xl cursor-pointer select-none whitespace-nowrap transition-colors touch-none"
             style={{
-              zIndex: 9999,
+              zIndex: 999999,
               fontSize: `${Math.max(0.68, 0.9 - noCount * 0.04)}rem`,
             }}
           >
             {noText}
-          </motion.button>
-        </div>
+          </motion.button>,
+          document.body
+        )}
 
         {/* Footer info */}
         <div className="mt-6 pt-3 sm:pt-4 border-t border-rose-100/80 flex items-center justify-between text-[11px] sm:text-xs text-rose-400 font-medium">

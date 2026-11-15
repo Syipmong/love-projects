@@ -359,7 +359,15 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
         data_json?: Record<string, unknown>;
       }>(req);
 
-      const pid = body.proposal_id || 'default';
+      let pid = body.proposal_id || 'default';
+      // Normalize proposal_id to proposal.id if 6-char slug was passed
+      if (pid !== 'default') {
+        const pCheck = await pool.query<DbProposal>('SELECT id FROM proposals WHERE slug = $1 OR id = $1', [pid]);
+        if (pCheck.rows.length > 0) {
+          pid = pCheck.rows[0].id;
+        }
+      }
+
       const result = await pool.query<DbEvent>(
         `INSERT INTO events (proposal_id, event_type, chapter, data_json)
          VALUES ($1, $2, $3, $4)
@@ -379,7 +387,15 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
         notes?: string;
       }>(req);
 
-      const pid = body.proposal_id || 'default';
+      let pid = body.proposal_id || 'default';
+      let proposalObj: DbProposal | null = null;
+      if (pid !== 'default') {
+        const propQuery = await pool.query<DbProposal>('SELECT * FROM proposals WHERE id = $1 OR slug = $1', [pid]);
+        if (propQuery.rows.length > 0) {
+          proposalObj = propQuery.rows[0];
+          pid = proposalObj.id;
+        }
+      }
 
       const result = await pool.query<DbResponse>(
         `INSERT INTO responses (proposal_id, answer, tease_attempts, notes)
@@ -390,8 +406,7 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
 
       // Fetch proposal details to send email
       try {
-        const propQuery = await pool.query<DbProposal>('SELECT * FROM proposals WHERE id = $1 OR slug = $1', [pid]);
-        const proposal = propQuery.rows[0];
+        const proposal = proposalObj || (await pool.query<DbProposal>('SELECT * FROM proposals WHERE id = $1 OR slug = $1', [pid])).rows[0];
 
         if (proposal?.creator_email) {
           const isYes = body.answer === 'yes';
@@ -432,39 +447,51 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       const propRes = await pool.query<DbProposal>('SELECT * FROM proposals WHERE slug = $1 OR id = $1', [codeOrId]);
       const proposal = propRes.rows[0] || null;
       const pid = proposal ? proposal.id : codeOrId;
+      const pslug = proposal ? proposal.slug : codeOrId;
 
       const respRes = await pool.query<DbResponse>(
-        'SELECT * FROM responses WHERE proposal_id = $1 ORDER BY created_at DESC LIMIT 1',
-        [pid]
+        'SELECT * FROM responses WHERE proposal_id = $1 OR proposal_id = $2 ORDER BY created_at DESC LIMIT 1',
+        [pid, pslug]
       );
       const latestResponse = respRes.rows[0] || null;
 
       const countRes = await pool.query<{ total_events: string }>(
-        'SELECT COUNT(*) as total_events FROM events WHERE proposal_id = $1',
-        [pid]
+        'SELECT COUNT(*) as total_events FROM events WHERE proposal_id = $1 OR proposal_id = $2',
+        [pid, pslug]
+      );
+
+      const teaseCountRes = await pool.query<{ tease_count: string }>(
+        `SELECT COUNT(*) as tease_count 
+         FROM events 
+         WHERE (proposal_id = $1 OR proposal_id = $2) AND event_type = 'no_button_evaded'`,
+        [pid, pslug]
       );
 
       const typesRes = await pool.query<{ event_type: string; count: string }>(
         `SELECT event_type, COUNT(*) as count 
          FROM events 
-         WHERE proposal_id = $1 
+         WHERE proposal_id = $1 OR proposal_id = $2 
          GROUP BY event_type`,
-        [pid]
+        [pid, pslug]
       );
 
       const timelineRes = await pool.query<DbEvent>(
         `SELECT * FROM events 
-         WHERE proposal_id = $1 
+         WHERE proposal_id = $1 OR proposal_id = $2 
          ORDER BY created_at DESC 
-         LIMIT 50`,
-        [pid]
+         LIMIT 100`,
+        [pid, pslug]
       );
+
+      const eventTeases = parseInt(teaseCountRes.rows[0]?.tease_count || '0', 10);
+      const recordedTeases = latestResponse?.tease_attempts || 0;
+      const calculatedTeases = Math.max(eventTeases, recordedTeases);
 
       const payload: DashboardAnalytics = {
         proposal,
         latestResponse,
         totalEvents: parseInt(countRes.rows[0]?.total_events || '0', 10),
-        teaseAttempts: latestResponse?.tease_attempts || 0,
+        teaseAttempts: calculatedTeases,
         eventCounts: typesRes.rows,
         timeline: timelineRes.rows
       };
