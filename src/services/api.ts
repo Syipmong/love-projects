@@ -222,7 +222,7 @@ export async function fetchDashboardData(proposalSlugOrId: string = 'default') {
   }
 }
 
-export interface PexelsPhoto {
+export interface CuratedPhoto {
   id: number;
   width: number;
   height: number;
@@ -235,14 +235,16 @@ export interface PexelsPhoto {
   avgColor?: string;
 }
 
+export type PexelsPhoto = CuratedPhoto;
+
 /**
- * Searches Pexels photos via backend proxy for creators to customize their story memories
+ * Searches curated romantic photo library for creators to customize their story memories
  */
-export async function searchPexelsPhotos(
+export async function searchCuratedPhotos(
   query: string,
   page = 1,
   perPage = 16
-): Promise<{ success: boolean; photos: PexelsPhoto[]; total_results?: number; error?: string }> {
+): Promise<{ success: boolean; photos: CuratedPhoto[]; total_results?: number; error?: string }> {
   try {
     const params = new URLSearchParams({
       q: query.trim() || 'romantic couple',
@@ -263,6 +265,8 @@ export async function searchPexelsPhotos(
     return { success: false, photos: [], error: msg };
   }
 }
+
+export const searchPexelsPhotos = searchCuratedPhotos;
 
 export interface AnonymousMessage {
   id: number;

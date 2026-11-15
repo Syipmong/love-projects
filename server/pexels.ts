@@ -33,90 +33,90 @@ export async function searchPexelsImages(
   perPage = 16
 ): Promise<PexelsSearchResponse> {
   const apiKey = process.env.PEXELS_API_KEY;
-  if (!apiKey) {
-    return {
-      success: false,
-      photos: [],
-      error: 'PEXELS_API_KEY is not configured on the server'
-    };
-  }
-
-  try {
-    const encodedQuery = encodeURIComponent(query.trim() || 'romantic couple');
-    const url = `${PEXELS_API_URL}/search?query=${encodedQuery}&page=${page}&per_page=${perPage}&orientation=landscape`;
-
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: apiKey
-      }
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error('Pexels API error response:', res.status, errText);
+    if (!apiKey) {
       return {
         success: false,
         photos: [],
-        error: `Pexels API responded with status ${res.status}`
+        error: 'Photo library service is currently initializing. Please try again shortly.'
       };
     }
 
-    const data = await res.json() as {
-      total_results?: number;
-      page?: number;
-      per_page?: number;
-      photos?: Array<{
-        id: number;
-        width: number;
-        height: number;
-        url: string;
-        alt?: string;
-        photographer: string;
-        photographer_url?: string;
-        avg_color?: string;
-        src: {
-          original?: string;
-          large2x?: string;
-          large?: string;
-          medium?: string;
-          small?: string;
-          portrait?: string;
-          landscape?: string;
-          tiny?: string;
+    try {
+      const encodedQuery = encodeURIComponent(query.trim() || 'romantic couple');
+      const url = `${PEXELS_API_URL}/search?query=${encodedQuery}&page=${page}&per_page=${perPage}&orientation=landscape`;
+
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: apiKey
+        }
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('Photo library error response:', res.status, errText);
+        return {
+          success: false,
+          photos: [],
+          error: 'Unable to search photo library at this moment.'
         };
-      }>;
-    };
+      }
 
-    const photos: PexelsPhoto[] = (data.photos || []).map((p) => ({
-      id: p.id,
-      width: p.width,
-      height: p.height,
-      url: p.url,
-      imageUrl: p.src.large || p.src.medium || p.src.original || '',
-      thumbnailUrl: p.src.medium || p.src.small || p.src.tiny || '',
-      alt: p.alt || 'Romantic memory',
-      photographer: p.photographer || 'Pexels Creator',
-      photographerUrl: p.photographer_url || '',
-      avgColor: p.avg_color
-    }));
+      const data = await res.json() as {
+        total_results?: number;
+        page?: number;
+        per_page?: number;
+        photos?: Array<{
+          id: number;
+          width: number;
+          height: number;
+          url: string;
+          alt?: string;
+          photographer: string;
+          photographer_url?: string;
+          avg_color?: string;
+          src: {
+            original?: string;
+            large2x?: string;
+            large?: string;
+            medium?: string;
+            small?: string;
+            portrait?: string;
+            landscape?: string;
+            tiny?: string;
+          };
+        }>;
+      };
 
-    return {
-      success: true,
-      total_results: data.total_results || photos.length,
-      page: data.page || page,
-      per_page: data.per_page || perPage,
-      photos
-    };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error('Failed to search Pexels images:', message);
-    return {
-      success: false,
-      photos: [],
-      error: message
-    };
-  }
+      const photos: PexelsPhoto[] = (data.photos || []).map((p) => ({
+        id: p.id,
+        width: p.width,
+        height: p.height,
+        url: p.url,
+        imageUrl: p.src.large || p.src.medium || p.src.original || '',
+        thumbnailUrl: p.src.medium || p.src.small || p.src.tiny || '',
+        alt: p.alt || 'Romantic memory',
+        photographer: p.photographer || 'Featured Artist',
+        photographerUrl: p.photographer_url || '',
+        avgColor: p.avg_color
+      }));
+
+      return {
+        success: true,
+        total_results: data.total_results || photos.length,
+        page: data.page || page,
+        per_page: data.per_page || perPage,
+        photos
+      };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      console.error('Failed to search photo library:', message);
+      return {
+        success: false,
+        photos: [],
+        error: 'Unable to search photos right now. Please try again.'
+      };
+    }
 }
 
 export async function getCuratedPexelsImages(

@@ -278,7 +278,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
       });
 
       if (res.ok) {
-        setSaveStatus('Changes saved successfully to database!');
+        setSaveStatus('Changes saved successfully!');
         setTimeout(() => setSaveStatus(null), 3000);
         const list = await getUserProposals();
         setProposals(list);
@@ -1052,7 +1052,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                   </div>
                 </div>
 
-                {/* Section C: Chapter 3 Polaroids with Pexels Search */}
+                {/* Section C: Chapter 3 Polaroids with Curated Photo Library */}
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
@@ -1061,7 +1061,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                         <span>Chapter 3: The 4 Memory Polaroids & Secret Notes</span>
                       </h4>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        Pick photos from Pexels or enter your own romantic pictures
+                        Pick photos from our curated library or add your own romantic pictures
                       </p>
                     </div>
                   </div>
@@ -1077,10 +1077,10 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                             type="button"
                             onClick={() => setActivePickerIndex(idx)}
                             className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all"
-                            title="Search Pexels photos"
+                            title="Browse curated photo library"
                           >
                             <Search className="w-3.5 h-3.5" />
-                            <span>Search Photos</span>
+                            <span>Browse Photos</span>
                           </button>
                         </div>
 
@@ -1709,7 +1709,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
         </div>
       )}
 
-      {/* Pexels Photo Search & Selection Modal */}
+      {/* Curated Photo Library & Selection Modal */}
       {activePickerIndex !== null && (
         <ImagePickerModal
           isOpen={true}
