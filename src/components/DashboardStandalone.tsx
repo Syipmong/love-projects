@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   Heart,
   Share2,
@@ -358,43 +359,107 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
               </button>
             </div>
 
-            {/* Navigation Tabs (Mobile Scrollable) */}
-            <div className="flex overflow-x-auto no-scrollbar whitespace-nowrap border-b border-slate-200 gap-2 sm:gap-4 pb-1">
-              <button
-                onClick={() => setActiveTab('proposals')}
-                className={`pb-2.5 px-2 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  activeTab === 'proposals'
-                    ? 'border-rose-500 text-rose-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <BookOpen className="w-3.5 h-3.5" />
-                <span>My Proposals ({proposals.length})</span>
-              </button>
+            {/* Ultra-Modern Segmented Capsule Navigation */}
+            <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+              <nav aria-label="Dashboard sections" className="p-1.5 bg-slate-200/60 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-inner inline-flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full">
+                {/* Tab 1: Proposals */}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('proposals')}
+                  className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer select-none shrink-0 ${
+                    activeTab === 'proposals'
+                      ? 'text-slate-900'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                  }`}
+                >
+                  {activeTab === 'proposals' && (
+                    <motion.div
+                      layoutId="activeDashboardTab"
+                      className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-200/70"
+                      transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2">
+                    <BookOpen className={`w-4 h-4 transition-colors ${activeTab === 'proposals' ? 'text-rose-500' : 'text-slate-500'}`} />
+                    <span>My Proposals</span>
+                    <span
+                      className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
+                        activeTab === 'proposals'
+                          ? 'bg-rose-100 text-rose-700'
+                          : 'bg-slate-200/80 text-slate-600'
+                      }`}
+                    >
+                      {proposals.length}
+                    </span>
+                  </span>
+                </button>
 
-              <button
-                onClick={() => setActiveTab('editor')}
-                className={`pb-2.5 px-2 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  activeTab === 'editor'
-                    ? 'border-rose-500 text-rose-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Sliders className="w-3.5 h-3.5" />
-                <span>Customize Story & Messages</span>
-              </button>
+                {/* Tab 2: Story Customizer */}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('editor')}
+                  className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer select-none shrink-0 ${
+                    activeTab === 'editor'
+                      ? 'text-slate-900'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                  }`}
+                >
+                  {activeTab === 'editor' && (
+                    <motion.div
+                      layoutId="activeDashboardTab"
+                      className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-200/70"
+                      transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2">
+                    <Sliders className={`w-4 h-4 transition-colors ${activeTab === 'editor' ? 'text-rose-500' : 'text-slate-500'}`} />
+                    <span>Customize Story</span>
+                    {selectedProposal && (
+                      <span className="hidden md:inline text-[11px] font-normal text-slate-400">
+                        • {selectedProposal.partner_name}
+                      </span>
+                    )}
+                  </span>
+                </button>
 
-              <button
-                onClick={() => setActiveTab('analytics')}
-                className={`pb-2.5 px-2 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  activeTab === 'analytics'
-                    ? 'border-rose-500 text-rose-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <BarChart3 className="w-3.5 h-3.5" />
-                <span>Live Analytics & Telemetry</span>
-              </button>
+                {/* Tab 3: Live Telemetry */}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('analytics')}
+                  className={`relative px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer select-none shrink-0 ${
+                    activeTab === 'analytics'
+                      ? 'text-slate-900'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                  }`}
+                >
+                  {activeTab === 'analytics' && (
+                    <motion.div
+                      layoutId="activeDashboardTab"
+                      className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-200/70"
+                      transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2">
+                    <BarChart3 className={`w-4 h-4 transition-colors ${activeTab === 'analytics' ? 'text-rose-500' : 'text-slate-500'}`} />
+                    <span>Live Analytics</span>
+                    <span className="relative flex h-2 w-2 ml-0.5" title="Real-time live telemetry">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                  </span>
+                </button>
+              </nav>
+
+              {/* Active Proposal Quick Indicator Pill */}
+              {selectedProposal && (
+                <div className="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs text-xs text-slate-600 self-center">
+                  <span className="text-slate-400">Selected:</span>
+                  <span className="font-semibold text-slate-800">{selectedProposal.partner_name}</span>
+                  <span className="font-mono font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg text-[11px] border border-rose-100">
+                    {selectedProposal.slug}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* TAB 1: PROPOSALS LIST */}

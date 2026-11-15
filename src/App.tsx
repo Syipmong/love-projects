@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Heart, BarChart3 } from 'lucide-react';
+import { Heart, BarChart3 } from 'lucide-react';
 import { ProposalConfig, AppTheme } from './types';
 import { DEFAULT_CONFIG } from './config';
 import { FloatingHearts } from './components/FloatingHearts';
@@ -183,40 +183,43 @@ export const App: React.FC = () => {
   // Otherwise, Story Experience View
   return (
     <div
-      className={`relative min-h-screen ${themeClass} flex flex-col justify-between py-6 sm:py-10 px-2 overflow-x-hidden selection:bg-rose-500 selection:text-white transition-colors duration-500`}
+      className={`relative min-h-screen ${themeClass} flex flex-col justify-between pt-3 sm:pt-6 pb-6 sm:pb-10 px-3 sm:px-6 overflow-x-hidden selection:bg-rose-500 selection:text-white transition-colors duration-500`}
     >
       {/* Background Floating Hearts */}
       <FloatingHearts />
 
-      {/* Top Controls Bar */}
-      <header className="relative z-30 flex items-center justify-between max-w-2xl w-full mx-auto px-2 sm:px-4 mb-3 sm:mb-4 gap-2">
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Standalone Dashboard Page Button */}
-          <button
-            onClick={() => setViewMode('dashboard')}
-            className="px-2.5 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-md backdrop-blur-md transition-all flex items-center gap-1.5 cursor-pointer text-[11px] sm:text-xs font-bold shrink-0"
-            title="Open Standalone Creator Dashboard"
-          >
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span className="hidden xs:inline">Dashboard</span>
-            <span className="xs:hidden">Studio</span>
-          </button>
+      {/* Ultra-Sleek Top Navigation Bar with Mobile Safe Area */}
+      <header className="relative z-30 w-full max-w-2xl mx-auto px-1 sm:px-2 mb-4 flex items-center justify-between gap-2.5">
+        {/* Left Side: Recipient Experience vs Creator Tools */}
+        {proposalId !== 'default' ? (
+          /* Romantic Recipient Badge (Pure & Magical for Partner) */
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 backdrop-blur-md border border-rose-100/90 shadow-xs">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+            </span>
+            <span className="text-xs font-romantic font-bold text-rose-700">
+              For {config.partnerName}
+            </span>
+          </div>
+        ) : (
+          /* Creator Mode Preview Controls (Clean, Compact, No-Cramming) */
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setViewMode('dashboard')}
+              className="px-3 py-1.5 rounded-full bg-white/90 hover:bg-white text-slate-700 hover:text-rose-600 shadow-xs backdrop-blur-md border border-rose-200/80 transition-all flex items-center gap-1.5 cursor-pointer text-xs font-semibold shrink-0"
+              title="Open Creator Studio & Dashboard"
+            >
+              <BarChart3 className="w-3.5 h-3.5 text-rose-500" />
+              <span>Studio</span>
+            </button>
 
-          {/* Quick Personalize Button */}
-          <button
-            onClick={() => setIsCustomizeOpen(true)}
-            className="p-1.5 sm:px-3 sm:py-1.5 rounded-full bg-white/80 hover:bg-white text-slate-600 hover:text-rose-600 shadow-sm backdrop-blur-md border border-rose-100 transition-all flex items-center gap-1 cursor-pointer text-[11px] sm:text-xs font-semibold shrink-0"
-            title="Quick customize names and question"
-          >
-            <Settings className="w-3.5 h-3.5 text-rose-500" />
-            <span className="hidden sm:inline">Edit</span>
-          </button>
+            <ThemeSelector currentTheme={currentTheme} onThemeChange={setCurrentTheme} />
+          </div>
+        )}
 
-          {/* Theme Selector */}
-          <ThemeSelector currentTheme={currentTheme} onThemeChange={setCurrentTheme} />
-        </div>
-
-        {/* Retro Vinyl Music Player */}
+        {/* Right Side: Retro Vinyl Music Player (Always Fits Comfortably) */}
         <MusicPlayer />
       </header>
 
