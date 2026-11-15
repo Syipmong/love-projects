@@ -1,5 +1,7 @@
 import http from 'node:http';
-import { URL } from 'node:url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { URL, fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
 import dotenv from 'dotenv';
 import { pool, initDb } from './db.ts';
@@ -10,6 +12,68 @@ import { searchPexelsImages } from './pexels.ts';
 import type { DbUser, DbProposal, DbEvent, DbResponse, DashboardAnalytics } from './types.ts';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DIST_DIR = path.resolve(__dirname, '../dist');
+
+const MIME_TYPES: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.webp': 'image/webp',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.mp3': 'audio/mpeg'
+};
+
+function serveStatic(reqPath: string, res: http.ServerResponse): boolean {
+  if (!fs.existsSync(DIST_DIR)) return false;
+
+  let filePath = path.join(DIST_DIR, reqPath === '/' ? 'index.html' : reqPath);
+
+  // Security check: ensure path stays within DIST_DIR
+  if (!filePath.startsWith(DIST_DIR)) {
+    return false;
+  }
+
+  // If path is a directory, check for index.html inside
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
+    filePath = path.join(filePath, 'index.html');
+  }
+
+  // SPA fallback for non-API client routes (like /dashboard or /?p=...)
+  if (!fs.existsSync(filePath)) {
+    filePath = path.join(DIST_DIR, 'index.html');
+  }
+
+  if (!fs.existsSync(filePath)) {
+    return false;
+  }
+
+  const ext = path.extname(filePath).toLowerCase();
+  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+
+  try {
+    const content = fs.readFileSync(filePath);
+    res.writeHead(200, {
+      'Content-Type': contentType,
+      'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=31536000, immutable'
+    });
+    res.end(content);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
@@ -416,6 +480,11 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
 
       const result = await searchPexelsImages(query, page, perPage);
       return sendJson(res, result.success ? 200 : 500, result);
+    }
+
+    // 13. Serve Static Frontend Files from dist/
+    if (serveStatic(pathname, res)) {
+      return;
     }
 
     // Fallthrough 404

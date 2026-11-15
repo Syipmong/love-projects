@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: love-projects
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: postgres://936e69571e52639f247e054c5cba75ce73c9c07a9dd5b9f24ea4fe01eb903c6f:sk_YceXYKCyaZqDtcJnNsQq-@db.prisma.io:5432/postgres?sslmode=require
+      - key: ZEPTOMAIL_API_KEY
+        value: wSsVR61+qxX1Cvh4yTP+Jbw7kAtcAQv3HBgp3QepuHWpHfmX88c7xUzGAQCmSfkYRGM6RzYU9bN8mBZUh2UIjYsrn1sAACiF9mqRe1U4J3x17qnvhDzNXm5alxeLL4wAxQ1onGNiGsAr+g==
+      - key: ZEPTOMAIL_SENDER
+        value: noreply@love.aetechlabs.com
+      - key: PEXELS_API_KEY
+        value: RNZtBxj4xg0aiSihFvN1mhfMQSkbgJa970cgHV8frW5ebnOIIxBKF0BZ
