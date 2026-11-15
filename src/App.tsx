@@ -14,7 +14,7 @@ import { StoryNavigation } from './components/StoryNavigation';
 import { CustomizeModal } from './components/CustomizeModal';
 import { MusicPlayer } from './components/MusicPlayer';
 import { ThemeSelector } from './components/ThemeSelector';
-import { CreatorDashboard } from './components/CreatorDashboard';
+import { DashboardStandalone } from './components/DashboardStandalone';
 import { fireGrandCelebration } from './utils/confetti';
 import { playCelebrationSound } from './utils/audio';
 import { recordProposalResponse, trackEvent, getProposalBySlug } from './services/api';
@@ -27,7 +27,7 @@ export const App: React.FC = () => {
   const [isDeclined, setIsDeclined] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<AppTheme>(config.theme || 'rose');
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
-  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'story' | 'dashboard'>('story');
   const [proposalId, setProposalId] = useState('default');
 
   // Anti-skip unlock states for each chapter
@@ -40,7 +40,8 @@ export const App: React.FC = () => {
     const initFromUrl = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const slugParam = params.get('p');
+        const codeParam = params.get('p');
+        const dashboardParam = params.get('dashboard');
         const toParam = params.get('to');
         const fromParam = params.get('from');
         const qParam = params.get('q');
@@ -48,10 +49,15 @@ export const App: React.FC = () => {
         const sinceParam = params.get('since');
         const themeParam = params.get('theme') as AppTheme;
 
-        // If unique proposal slug provided (e.g. ?p=for-maya-8k2)
-        if (slugParam) {
-          setProposalId(slugParam);
-          const proposal = await getProposalBySlug(slugParam);
+        // If URL requests dashboard directly
+        if (dashboardParam === 'true' || window.location.pathname === '/dashboard') {
+          setViewMode('dashboard');
+        }
+
+        // If 6-character proposal code provided (e.g. ?p=K9X2M4)
+        if (codeParam) {
+          setProposalId(codeParam);
+          const proposal = await getProposalBySlug(codeParam);
           if (proposal) {
             setConfig((prev) => ({
               ...prev,
@@ -61,7 +67,7 @@ export const App: React.FC = () => {
               proposalQuestion: proposal.question || prev.proposalQuestion
             }));
           }
-          trackEvent('page_view', 0, { slug: slugParam }, slugParam);
+          trackEvent('page_view', 0, { code: codeParam }, codeParam);
           return;
         }
 
@@ -87,7 +93,6 @@ export const App: React.FC = () => {
           }
         }
 
-        // Track default initial visit
         trackEvent('page_view', 0, { to: toParam || config.partnerName }, 'default');
       } catch (e) {
         console.debug('URL params parsing error', e);
@@ -149,7 +154,7 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Determine if she is allowed to proceed to the next chapter based on engagement
+  // Determine if allowed to proceed based on engagement
   const isNextAllowed = () => {
     if (currentChapter === 0) return true;
     if (currentChapter === 1) return canProceedChapter1;
@@ -165,6 +170,17 @@ export const App: React.FC = () => {
       ? 'bg-theme-lavender'
       : 'bg-theme-rose';
 
+  // If in Dashboard Standalone Page View
+  if (viewMode === 'dashboard') {
+    return (
+      <DashboardStandalone
+        onBackToStory={() => setViewMode('story')}
+        activeProposalSlug={proposalId}
+      />
+    );
+  }
+
+  // Otherwise, Story Experience View
   return (
     <div
       className={`relative min-h-screen ${themeClass} flex flex-col justify-between py-6 sm:py-10 px-2 overflow-x-hidden selection:bg-rose-500 selection:text-white transition-colors duration-500`}
@@ -175,24 +191,24 @@ export const App: React.FC = () => {
       {/* Top Controls Bar */}
       <header className="relative z-30 flex items-center justify-between max-w-2xl w-full mx-auto px-4 mb-4 gap-2 flex-wrap">
         <div className="flex items-center gap-2">
-          {/* Personalize Button */}
+          {/* Quick Personalize Button */}
           <button
             onClick={() => setIsCustomizeOpen(true)}
             className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-white/80 hover:bg-white text-slate-600 hover:text-rose-600 shadow-sm backdrop-blur-md border border-rose-100 transition-all flex items-center gap-1.5 cursor-pointer text-xs font-semibold"
-            title="Customize names, stories, and question"
+            title="Quick customize names and question"
           >
             <Settings className="w-3.5 h-3.5 text-rose-500" />
-            <span className="hidden sm:inline">Personalize</span>
+            <span className="hidden sm:inline">Quick Edit</span>
           </button>
 
-          {/* Creator Live Analytics Dashboard Button */}
+          {/* Standalone Dashboard Page Button */}
           <button
-            onClick={() => setIsDashboardOpen(true)}
-            className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 shadow-sm backdrop-blur-md border border-rose-200 transition-all flex items-center gap-1.5 cursor-pointer text-xs font-semibold"
-            title="View Live Analytics & Metrics"
+            onClick={() => setViewMode('dashboard')}
+            className="p-2 sm:px-3.5 sm:py-1.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-md backdrop-blur-md transition-all flex items-center gap-1.5 cursor-pointer text-xs font-bold"
+            title="Open Standalone Creator Dashboard"
           >
-            <BarChart3 className="w-3.5 h-3.5 text-rose-600" />
-            <span className="hidden sm:inline">Dashboard</span>
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span>Dashboard Studio</span>
           </button>
 
           {/* Theme Selector */}
@@ -283,20 +299,12 @@ export const App: React.FC = () => {
         </p>
       </footer>
 
-      {/* Customization Modal */}
+      {/* Quick Customization Modal */}
       <CustomizeModal
         isOpen={isCustomizeOpen}
         onClose={() => setIsCustomizeOpen(false)}
         config={config}
         onSave={(updated) => setConfig(updated)}
-      />
-
-      {/* Creator Analytics Dashboard */}
-      <CreatorDashboard
-        isOpen={isDashboardOpen}
-        onClose={() => setIsDashboardOpen(false)}
-        proposalId={proposalId}
-        config={config}
       />
     </div>
   );

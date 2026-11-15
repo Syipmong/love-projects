@@ -14,3 +14,4 @@ export function generate6CharAlphaNumericCode(): string {
   }
   return code;
 }
+
