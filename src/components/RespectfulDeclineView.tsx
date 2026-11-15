@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Heart, RotateCcw, MessageCircleHeart } from 'lucide-react';
+import { Heart, RotateCcw } from 'lucide-react';
 import { ProposalConfig } from '../types';
 
 interface RespectfulDeclineViewProps {

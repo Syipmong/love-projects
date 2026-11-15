@@ -11,11 +11,13 @@ import {
   Share2,
   RotateCcw,
   Check,
-  Printer
+  Printer,
+  MessageCircle
 } from 'lucide-react';
 import { ProposalConfig } from '../types';
 import { CUTE_REACTIONS } from '../config';
 import { DynamicIcon } from './IconHelper';
+import { SecretDateSurpriseVault } from './SecretDateSurpriseVault';
 import { fireGrandCelebration } from '../utils/confetti';
 import { playPopSound } from '../utils/audio';
 
@@ -48,6 +50,14 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
     window.print();
   };
 
+  const sendWhatsAppNotification = () => {
+    playPopSound();
+    const phone = config.whatsappPhone?.replace(/[^0-9]/g, '') || '';
+    const text = encodeURIComponent(`Hey ${config.senderName}... I just walked through our story, and I said YES! ❤️🥰`);
+    const waUrl = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`;
+    window.open(waUrl, '_blank');
+  };
+
   const todayFormatted = new Date().toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
@@ -61,7 +71,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
       transition={{ duration: 0.6 }}
       className="w-full max-w-3xl mx-auto px-4 py-6 z-10 space-y-8"
     >
-      {/* Top Victory Card without sparks */}
+      {/* Top Victory Card */}
       <div className="glass-card rounded-3xl p-6 sm:p-10 shadow-2xl text-center relative overflow-hidden border-2 border-rose-200">
         <motion.div
           animate={{ scale: [1, 1.05, 1] }}
@@ -97,8 +107,17 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
           The best decision ever made.
         </p>
 
-        {/* Celebration buttons without sparks */}
+        {/* Celebration Action Buttons */}
         <div className="mt-6 flex flex-wrap justify-center gap-3">
+          {/* Send Instant WhatsApp / Text */}
+          <button
+            onClick={sendWhatsAppNotification}
+            className="px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>Tell Him I Said YES! 💌</span>
+          </button>
+
           <button
             onClick={() => {
               playPopSound();
@@ -136,6 +155,11 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
           </button>
         </div>
       </div>
+
+      {/* Secret Date Surprise Mystery Vault */}
+      {config.secretDateSurprise && (
+        <SecretDateSurpriseVault surprise={config.secretDateSurprise} />
+      )}
 
       {/* Official Certificate of Romance Card */}
       <div
@@ -254,7 +278,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
         </div>
       </div>
 
-      {/* Reasons Why I Adore You with Lucide Icons */}
+      {/* Reasons Why I Adore You */}
       <div className="glass-card rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-pink-200">
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-600 font-semibold text-xs tracking-wider uppercase mb-2">
@@ -289,7 +313,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
         </div>
       </div>
 
-      {/* Redeemable Date Coupons with Lucide Icons */}
+      {/* Redeemable Date Coupons */}
       <div className="glass-card rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-pink-200">
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold text-xs tracking-wider uppercase mb-2">

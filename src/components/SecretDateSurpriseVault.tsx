@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Unlock, KeyRound, MapPin, Compass, Heart, CheckCircle2 } from 'lucide-react';
+import { Lock, Unlock, KeyRound, MapPin, Heart, CheckCircle2 } from 'lucide-react';
 import { SecretDateSurprise } from '../types';
 import { playPopSound, playCelebrationSound } from '../utils/audio';
 

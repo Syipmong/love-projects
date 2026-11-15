@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, AlertCircle, Bookmark, ShieldAlert } from 'lucide-react';
+import { Heart, AlertCircle, Bookmark } from 'lucide-react';
 import { NO_BUTTON_TEXTS, CUTE_REACTIONS } from '../config';
 import { playEvasionSound, playPopSound } from '../utils/audio';
 

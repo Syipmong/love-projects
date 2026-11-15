@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Volume2, VolumeX, Music, Disc } from 'lucide-react';
+import { VolumeX, Disc } from 'lucide-react';
 import { toggleBackgroundMusic } from '../utils/audio';
 
 export const MusicPlayer: React.FC = () => {
