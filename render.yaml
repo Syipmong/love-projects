@@ -14,6 +14,6 @@ services:
       - key: ZEPTOMAIL_API_KEY
         sync: false
       - key: ZEPTOMAIL_SENDER
-        value: noreply@love.aetechlabs.com
+        value: noreply@app.aetechlabs.com
       - key: PEXELS_API_KEY
         sync: false
