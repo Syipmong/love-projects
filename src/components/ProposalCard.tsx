@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Sparkles, AlertCircle } from 'lucide-react';
+import { Heart, AlertCircle, Bookmark } from 'lucide-react';
 import { NO_BUTTON_TEXTS, CUTE_REACTIONS } from '../config';
 import { playEvasionSound, playPopSound } from '../utils/audio';
 
@@ -35,20 +35,20 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
     return CUTE_REACTIONS.surprised;
   };
 
-  // Teasing speech bubble text
+  // Teasing speech bubble text without emojis
   useEffect(() => {
     if (noCount === 0) {
       setSpeechBubble(null);
     } else if (noCount === 1) {
-      setSpeechBubble("Wait, did your finger slip? 🥺");
+      setSpeechBubble("Wait, did your finger slip?");
     } else if (noCount === 2) {
-      setSpeechBubble("Look how pretty that YES button is! ✨");
+      setSpeechBubble("Look how big that YES button is!");
     } else if (noCount === 3) {
-      setSpeechBubble("I promise unlimited snacks and cuddles! 🍩");
+      setSpeechBubble("I promise unlimited snacks and cozy talks!");
     } else if (noCount === 5) {
-      setSpeechBubble("You're making the bear cry! 😭");
+      setSpeechBubble("You are making the little bear sad!");
     } else if (noCount >= 7) {
-      setSpeechBubble("Resistance is futile, say YES! 💕");
+      setSpeechBubble("Resistance is futile, say YES!");
     }
   }, [noCount]);
 
@@ -58,17 +58,14 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
     playEvasionSound();
     setNoCount((prev) => prev + 1);
 
-    // Calculate boundary limits relative to the card container
     if (containerRef.current && noButtonRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect();
       const btnRect = noButtonRef.current.getBoundingClientRect();
 
-      // Safe bounds within the interactive container
       const padding = 20;
       const maxX = (containerRect.width / 2) - (btnRect.width / 2) - padding;
       const maxY = 130;
 
-      // Generate a new offset away from the current one
       const randomX = (Math.random() * 2 - 1) * maxX;
       const randomY = (Math.random() * 2 - 1) * maxY;
 
@@ -77,7 +74,6 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
         y: Math.round(randomY)
       });
     } else {
-      // Fallback relative dodge
       const randomX = (Math.random() - 0.5) * 240;
       const randomY = (Math.random() - 0.5) * 160;
       setNoPosition({ x: randomX, y: randomY });
@@ -100,9 +96,9 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
         ref={containerRef}
         className="glass-card rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden text-center border-2 border-pink-200/80"
       >
-        {/* Soft top accent badge */}
+        {/* Soft top accent badge without sparks */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-4 shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 text-rose-500 animate-spin" style={{ animationDuration: '6s' }} />
+          <Bookmark className="w-3.5 h-3.5 text-rose-500" />
           <span>Chapter 5: The Question for {partnerName}</span>
           <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
         </div>
@@ -133,7 +129,7 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
           >
             <img
               src={getMascot()}
-              alt="Cute love mascot"
+              alt="Cute mascot"
               className="w-full h-full object-contain pointer-events-none select-none drop-shadow-md"
               loading="eager"
             />
@@ -175,7 +171,7 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
           >
             <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-white animate-pulse" />
             <span className="tracking-wide">YES!</span>
-            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
+            <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-white" />
           </motion.button>
 
           {/* RUNAWAY NO BUTTON */}
@@ -210,13 +206,12 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
           </motion.button>
         </div>
 
-        {/* Footer gentle hint */}
+        {/* Footer gentle hint without emojis */}
         <div className="mt-8 pt-4 border-t border-rose-100/80 flex items-center justify-between text-xs text-rose-400 font-medium">
           <span>From: {senderName}</span>
-          <span>{noCount > 0 ? `Attempts to resist: ${noCount} 🤭` : 'Choose wisely 💕'}</span>
+          <span>{noCount > 0 ? `Attempts to resist: ${noCount}` : 'Choose with your heart'}</span>
         </div>
       </div>
     </motion.div>
   );
 };
-

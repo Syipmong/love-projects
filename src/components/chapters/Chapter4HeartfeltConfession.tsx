@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Sparkles } from 'lucide-react';
+import { Heart, MessageSquareHeart } from 'lucide-react';
 import { ProposalConfig } from '../../types';
+import { RomanticQuizCard } from '../RomanticQuizCard';
 import { playPopSound } from '../../utils/audio';
 
 interface Chapter4HeartfeltConfessionProps {
@@ -27,21 +28,21 @@ export const Chapter4HeartfeltConfession: React.FC<Chapter4HeartfeltConfessionPr
       className="w-full max-w-2xl mx-auto px-4 z-10"
     >
       <div className="glass-card rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden border-2 border-rose-200/90 text-center">
-        {/* Header */}
+        {/* Header without sparks */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-600 text-xs font-semibold tracking-wider uppercase mb-3">
-          <Sparkles className="w-3.5 h-3.5" />
+          <MessageSquareHeart className="w-3.5 h-3.5" />
           <span>Chapter 4: The Unspoken Feeling</span>
         </div>
 
         <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-800 font-romantic mb-3">
-          What I've Wanted To Tell You 💭
+          What I've Wanted To Tell You
         </h2>
 
         {/* Interactive glowing heart tap */}
         <div className="my-4 flex flex-col items-center">
           <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
             onClick={pumpHeart}
             className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-rose-500 to-pink-400 text-white flex items-center justify-center shadow-lg cursor-pointer glow-pink transition-transform"
             title="Tap my heart"
@@ -54,7 +55,7 @@ export const Chapter4HeartfeltConfession: React.FC<Chapter4HeartfeltConfessionPr
             />
           </motion.button>
           <span className="text-[11px] text-rose-500 font-semibold mt-2">
-            Tap the heart: {heartPumps} beats for you 💕
+            Tap the heart: {heartPumps} beats for you
           </span>
         </div>
 
@@ -70,11 +71,13 @@ export const Chapter4HeartfeltConfession: React.FC<Chapter4HeartfeltConfessionPr
           </div>
         </div>
 
+        {/* Interactive Romantic Mini-Quiz */}
+        {config.quiz && <RomanticQuizCard quiz={config.quiz} />}
+
         <div className="mt-6 text-xs text-rose-400 font-medium">
-          Ready for the next page? Click below... 🌸
+          Ready for the next page? Click below...
         </div>
       </div>
     </motion.div>
   );
 };
-

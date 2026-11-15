@@ -4,12 +4,13 @@ export const DEFAULT_CONFIG: ProposalConfig = {
   partnerName: "My Favorite Person",
   senderName: "Yours Truly",
   proposalQuestion: "Will you be my girlfriend?",
-  subheading: "Every chapter of my story has been leading up to this moment...",
-  
-  // Chapter 1: The Intro / Mysterious Invitation
+  subheading: "Every chapter of our story has quietly led to this one question...",
+  startDate: "2024-06-01", // Customizable: Date you first met or started talking
+
+  // Chapter 1: The Intro / Subtle Invitation
   introBadge: "A Special Space Just For You",
   introTitle: "Hey there, beautiful...",
-  introSubtitle: "Before you ask what this is, take a deep breath. I built this quiet little corner on the internet because ordinary words over a text message could never do justice to what you mean to me.",
+  introSubtitle: "Before you ask what this is, take a slow breath. I built this quiet little corner on the web because ordinary words over a text message could never do justice to what you mean to me.",
 
   // Chapter 2: The Timeline of Our Story
   storyMilestones: [
@@ -19,31 +20,31 @@ export const DEFAULT_CONFIG: ProposalConfig = {
       title: "The Moment You Crossed My Path",
       date: "Day One",
       story: "I still remember the first time we connected. I didn't know it back then, but that was the exact moment my world began to tilt a little more toward joy.",
-      emoji: "✨"
+      icon: "compass"
     },
     {
       id: "m2",
       tag: "The Turning Point",
       title: "When Conversations Stretched Past Midnight",
       date: "Late Nights",
-      story: "We'd talk about everything and nothing—our favorite songs, silly jokes, random childhood stories. I found myself looking at my phone smiling like an idiot, never wanting the night to end.",
-      emoji: "🌙"
+      story: "We would talk about everything and nothing—our favorite songs, silly jokes, random childhood memories. I found myself looking at my phone smiling, never wanting the night to end.",
+      icon: "moon"
     },
     {
       id: "m3",
       tag: "The Realization",
       title: "When You Became My First Thought",
       date: "The Epiphany",
-      story: "Whenever something funny happened, you were the first person I wanted to tell. Whenever I had a rough day, just the thought of your voice made everything softer. That's when I knew: you weren't just someone in my life, you were becoming my favorite part of it.",
-      emoji: "💭"
+      story: "Whenever something funny happened, you were the first person I wanted to tell. Whenever I had a rough day, just the thought of your voice made everything softer. That's when I knew: you were becoming my favorite part of life.",
+      icon: "message"
     },
     {
       id: "m4",
       tag: "The Present",
       title: "Standing Here Right Now",
       date: "Today",
-      story: "Looking at how far we've come, I realize that every little smile you've given me has built a home in my heart that no one else can occupy.",
-      emoji: "🏡"
+      story: "Looking at how far we've come, I realize that every smile you've given me has built a home in my heart that no one else can occupy.",
+      icon: "home"
     }
   ],
 
@@ -54,21 +55,21 @@ export const DEFAULT_CONFIG: ProposalConfig = {
       title: "That Unmatched Smile",
       caption: "The way your eyes crinkle when you genuinely laugh.",
       imageUrl: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=600&q=80",
-      secretNote: "Every time you smile, my heart skips a beat. You have no idea how much warmth you carry."
+      secretNote: "Every time you smile, my heart skips a beat. You have no idea how much natural warmth you carry into every room."
     },
     {
       id: "p2",
       title: "Your Pure Heart",
       caption: "How deeply you care about the people around you.",
       imageUrl: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=600&q=80",
-      secretNote: "Your gentleness and empathy inspire me to be a better person every single day."
+      secretNote: "Your gentleness and empathy inspire me to be a kinder, better person every single day."
     },
     {
       id: "p3",
       title: "Our Quiet Moments",
-      caption: "When words aren't needed, and silence feels like home.",
+      caption: "When words aren't needed, and silence feels peaceful.",
       imageUrl: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=600&q=80",
-      secretNote: "Even in the simplest moments, having you near is all the peace I could ever ask for."
+      secretNote: "Even in the simplest moments, just having you near is all the comfort I could ever ask for."
     },
     {
       id: "p4",
@@ -79,12 +80,34 @@ export const DEFAULT_CONFIG: ProposalConfig = {
     }
   ],
 
+  // Interactive Mini Quiz / Sweet Question before the proposal
+  quiz: {
+    prompt: "Quick question before we turn the next page: Do you know what my absolute favorite thing about you is?",
+    options: [
+      {
+        text: "Your radiant smile",
+        response: "Your smile is genuinely breathtaking, but there's even more to it...",
+        icon: "sun"
+      },
+      {
+        text: "The way you make me laugh",
+        response: "Your humor is unmatched, but it's deeper than that...",
+        icon: "smile"
+      },
+      {
+        text: "Literally everything about you",
+        response: "Spot on. Your kindness, your quirks, your laughter, your heart—all of it.",
+        icon: "heart"
+      }
+    ]
+  },
+
   // Chapter 4: Heartfelt Confession
   confessionParagraphs: [
-    "I've spent a lot of time thinking about what love truly means. I used to think it was just big dramatic movie moments. But then you came along.",
+    "I've spent a lot of time thinking about what love truly means. I used to think it was just big dramatic movie moments. But then you walked into my life.",
     "Real love, I've learned from you, is wanting someone to be safe. It's caring about how their day went. It's admiring their strength, respecting their boundaries, and celebrating their smallest wins.",
     "You've shown me a kind of tenderness I didn't know I was missing. When I picture tomorrow, next week, or next year, it always has you in it.",
-    "I don't just want to be someone who admires you from the sidelines. I want to be the one who supports your dreams, holds your hand when life gets stormy, and makes sure you never doubt how deeply you are cherished."
+    "I don't just want to be someone who admires you from afar. I want to be the one who supports your dreams, holds your hand through life's storms, and makes sure you never doubt how deeply you are loved."
   ],
 
   // Reasons Why
@@ -92,32 +115,32 @@ export const DEFAULT_CONFIG: ProposalConfig = {
     {
       id: "1",
       title: "Your Warmth",
-      description: "You make everyone around you feel valued, heard, and safe.",
-      emoji: "☀️"
+      description: "You make everyone around you feel valued, heard, and genuinely safe.",
+      icon: "sun"
     },
     {
       id: "2",
-      title: "Your Laugh",
+      title: "Your Laughter",
       description: "It is honestly my favorite song in the whole world.",
-      emoji: "🎶"
+      icon: "music"
     },
     {
       id: "3",
       title: "Your Strength",
       description: "The resilient, graceful way you navigate everything that comes your way.",
-      emoji: "🌸"
+      icon: "shield"
     },
     {
       id: "4",
       title: "Our Banter",
-      description: "We can switch from deep life philosophy to dumb memes in 2 seconds.",
-      emoji: "💫"
+      description: "We can switch from deep philosophical talks to silly jokes in two seconds.",
+      icon: "banter"
     },
     {
       id: "5",
       title: "Simply You",
-      description: "Out of everyone in this universe, you are my favorite human.",
-      emoji: "💖"
+      description: "Out of eight billion people on earth, my heart chose you without hesitation.",
+      icon: "heart"
     }
   ],
 
@@ -125,62 +148,62 @@ export const DEFAULT_CONFIG: ProposalConfig = {
   dateCoupons: [
     {
       id: "c1",
-      title: "Midnight Food & Snack Raid",
-      description: "Valid for midnight ice-cream, Boba, fries, or whatever craving hits.",
-      emoji: "🍦",
+      title: "Midnight Food & Snack Run",
+      description: "Valid for midnight ice-cream, tacos, fries, or whatever craving strikes.",
+      icon: "utensils",
       color: "from-amber-400 to-orange-500"
     },
     {
       id: "c2",
       title: "Cozy Blanket & Movie Night",
       description: "Your movie picks, warm blankets, lots of snacks, and zero interruptions.",
-      emoji: "🎬",
+      icon: "film",
       color: "from-purple-400 to-pink-500"
     },
     {
       id: "c3",
       title: "A Truly Fancy Dinner Date",
-      description: "Dressing up to the nines, candlelight, good food, and admiring you across the table.",
-      emoji: "🍷",
+      description: "Dressing up, candlelight, delicious food, and admiring you across the table.",
+      icon: "wine",
       color: "from-rose-400 to-red-500"
     },
     {
       id: "c4",
-      title: "Full Princess Treatment Day",
+      title: "Full Royalty Treatment Day",
       description: "Whatever you feel like doing—your wish is my absolute command today.",
-      emoji: "👑",
+      icon: "crown",
       color: "from-pink-400 to-rose-500"
     }
   ],
 
-  letterTitle: "To the One Who Holds My Heart 💕",
+  letterTitle: "To the One Who Holds My Heart",
   letterBody: [
     "From the moment you entered my life, you turned ordinary days into unforgettable memories.",
     "Your smile brings warmth on my coldest days, and your laughter is honestly my favorite sound in the world.",
     "I love the way we can talk for hours about everything and nothing, and how safe and happy I feel just being around you.",
     "I don't just want you for right now—I want to be the one who stands by you, cheers for your dreams, makes you laugh, and holds your hand through it all.",
-    "Thank you for being you, and thank you for saying YES to us! 🥰"
+    "Thank you for being you, and thank you for saying YES to us."
   ]
 };
 
-// Playful and funny texts for the "No" button as it is clicked or chased
+// Playful and funny texts for the "No" button as it is clicked or chased (clean, no emojis)
 export const NO_BUTTON_TEXTS: string[] = [
   "No",
-  "Are you sure? 🥺",
-  "Really sure? 💔",
-  "Think again! 🤔",
-  "Look at the big YES button! 👉",
-  "Don't break my heart! 😭",
-  "I'll cook you your favorite food! 🥞",
-  "What if I give you unlimited hugs? 🤗",
-  "Is that your final answer? 👀",
-  "You're clicking the wrong button! 🙈",
-  "Even this button is running away! 🏃‍♀️💨",
-  "Error 404: 'No' not available! 🚫",
-  "Come on, just click YES! 🥰",
-  "Resistance is futile! ✨",
-  "I won't let you say no! 💖",
-  "Okay you're definitely teasing me now! 😂"
+  "Are you sure?",
+  "Really sure?",
+  "Think again...",
+  "Look at the big YES button!",
+  "Don't break my heart!",
+  "I'll cook you your favorite food!",
+  "What if I give you unlimited hugs?",
+  "Is that your final answer?",
+  "You're clicking the wrong button!",
+  "Even this button is running away!",
+  "Error 404: 'No' not available",
+  "Come on, just click YES!",
+  "Resistance is futile",
+  "I won't let you say no",
+  "Okay you are definitely teasing me now!"
 ];
 
 // Cute reaction gifs

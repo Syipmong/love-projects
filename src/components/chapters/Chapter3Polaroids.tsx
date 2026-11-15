@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Heart, Eye } from 'lucide-react';
+import { Camera, Heart, Eye } from 'lucide-react';
 import { ProposalConfig, MemoryPolaroid } from '../../types';
 import { playPopSound } from '../../utils/audio';
 
@@ -25,18 +25,18 @@ export const Chapter3Polaroids: React.FC<Chapter3PolaroidsProps> = ({ config }) 
       className="w-full max-w-2xl mx-auto px-4 z-10"
     >
       <div className="glass-card rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border-2 border-rose-200/90 text-center">
-        {/* Header */}
+        {/* Header without sparks */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-600 text-xs font-semibold tracking-wider uppercase mb-3">
-          <Sparkles className="w-3.5 h-3.5" />
+          <Camera className="w-3.5 h-3.5" />
           <span>Chapter 3: The Little Things</span>
         </div>
 
         <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-800 font-romantic mb-2">
-          What My Heart Remembers 📸
+          What My Heart Remembers
         </h2>
         <p className="text-slate-600 text-xs sm:text-sm max-w-md mx-auto mb-6">
-          It’s rarely the grand gestures. It's the small, quiet things you do that captured me completely.
-          <span className="block text-rose-500 font-semibold mt-1">Tap each memory card to reveal my secret note!</span>
+          It is rarely the grand gestures. It's the small, quiet things you do that captured me completely.
+          <span className="block text-rose-500 font-semibold mt-1">Tap each memory card to reveal my secret note</span>
         </p>
 
         {/* Polaroids Grid */}
@@ -111,4 +111,3 @@ export const Chapter3Polaroids: React.FC<Chapter3PolaroidsProps> = ({ config }) 
     </motion.div>
   );
 };
-

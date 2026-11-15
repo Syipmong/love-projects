@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Copy, Check, Heart } from 'lucide-react';
+import { X, Copy, Check, Heart, Sliders, Calendar } from 'lucide-react';
 import { ProposalConfig } from '../types';
 
 interface CustomizeModalProps {
@@ -27,6 +27,7 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
   const [partnerName, setPartnerName] = useState(config.partnerName);
   const [senderName, setSenderName] = useState(config.senderName);
   const [question, setQuestion] = useState(config.proposalQuestion);
+  const [startDate, setStartDate] = useState(config.startDate || "2024-06-01");
   const [copiedLink, setCopiedLink] = useState(false);
 
   if (!isOpen) return null;
@@ -37,7 +38,8 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
       ...config,
       partnerName: partnerName.trim() || "My Dearest",
       senderName: senderName.trim() || "Yours Truly",
-      proposalQuestion: question.trim() || "Will you be my girlfriend?"
+      proposalQuestion: question.trim() || "Will you be my girlfriend?",
+      startDate: startDate || "2024-06-01"
     });
     onClose();
   };
@@ -48,6 +50,7 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
     if (partnerName) params.set('to', partnerName);
     if (senderName) params.set('from', senderName);
     if (question) params.set('q', question);
+    if (startDate) params.set('since', startDate);
     return `${origin}?${params.toString()}`;
   };
 
@@ -67,12 +70,12 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
           exit={{ opacity: 0, scale: 0.92, y: 15 }}
           className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-rose-200 relative overflow-hidden"
         >
-          {/* Header */}
+          {/* Header without sparks */}
           <div className="flex items-center justify-between pb-4 border-b border-rose-100 mb-6">
             <div className="flex items-center gap-2 text-rose-600">
-              <Sparkles className="w-5 h-5 text-rose-500" />
+              <Sliders className="w-5 h-5 text-rose-500" />
               <h2 className="text-xl font-bold font-romantic text-slate-800">
-                Personalize Your Proposal 💕
+                Personalize Your Story
               </h2>
             </div>
             <button
@@ -112,6 +115,20 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
               />
             </div>
 
+            {/* Start Date */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-rose-500" />
+                <span>Date You Met / Started Talking (For Live Timer)</span>
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-4 py-2 rounded-xl border border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 text-slate-800 text-sm"
+              />
+            </div>
+
             {/* The Question */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
@@ -132,7 +149,7 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
                     key={preset}
                     type="button"
                     onClick={() => setQuestion(preset)}
-                    className={`text-[11px] px-2.5 py-1 rounded-full border transition-all ${
+                    className={`text-[11px] px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
                       question === preset
                         ? 'bg-rose-500 text-white border-rose-500 font-semibold'
                         : 'bg-rose-50/70 text-rose-700 border-rose-200 hover:bg-rose-100'
@@ -151,7 +168,7 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
                   <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
                   Instant Shareable Link
                 </span>
-                <span className="text-[10px] text-slate-400">Contains these custom names</span>
+                <span className="text-[10px] text-slate-400">Stores names in URL</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -163,7 +180,7 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
                 <button
                   type="button"
                   onClick={copyCustomUrl}
-                  className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors"
+                  className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors cursor-pointer"
                 >
                   {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedLink ? 'Copied!' : 'Copy'}</span>
@@ -176,13 +193,13 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-sm font-medium transition-colors"
+                className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-sm font-medium transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold shadow-md transition-all"
+                className="px-6 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold shadow-md transition-all cursor-pointer"
               >
                 Apply Changes
               </button>
@@ -193,4 +210,3 @@ export const CustomizeModal: React.FC<CustomizeModalProps> = ({
     </AnimatePresence>
   );
 };
-

@@ -30,13 +30,15 @@ export const App: React.FC = () => {
       const fromParam = params.get('from');
       const qParam = params.get('q');
       const stepParam = params.get('ch');
+      const sinceParam = params.get('since');
 
-      if (toParam || fromParam || qParam) {
+      if (toParam || fromParam || qParam || sinceParam) {
         setConfig((prev) => ({
           ...prev,
           partnerName: toParam || prev.partnerName,
           senderName: fromParam || prev.senderName,
-          proposalQuestion: qParam || prev.proposalQuestion
+          proposalQuestion: qParam || prev.proposalQuestion,
+          startDate: sinceParam || prev.startDate
         }));
       }
 

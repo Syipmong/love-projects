@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart,
-  Sparkles,
   Mail,
   MailOpen,
   Award,
@@ -11,10 +10,12 @@ import {
   CheckCircle2,
   Share2,
   RotateCcw,
-  Check
+  Check,
+  Printer
 } from 'lucide-react';
 import { ProposalConfig } from '../types';
 import { CUTE_REACTIONS } from '../config';
+import { DynamicIcon } from './IconHelper';
 import { fireGrandCelebration } from '../utils/confetti';
 import { playPopSound } from '../utils/audio';
 
@@ -42,6 +43,11 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
     setTimeout(() => setCopiedLink(false), 3000);
   };
 
+  const handlePrintCertificate = () => {
+    playPopSound();
+    window.print();
+  };
+
   const todayFormatted = new Date().toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
@@ -53,18 +59,18 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6 }}
-      className="w-full max-w-3xl mx-auto px-4 py-8 z-10 space-y-8"
+      className="w-full max-w-3xl mx-auto px-4 py-6 z-10 space-y-8"
     >
-      {/* Top Victory Card */}
+      {/* Top Victory Card without sparks */}
       <div className="glass-card rounded-3xl p-6 sm:p-10 shadow-2xl text-center relative overflow-hidden border-2 border-rose-200">
         <motion.div
-          animate={{ scale: [1, 1.08, 1] }}
+          animate={{ scale: [1, 1.05, 1] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-rose-500 text-white font-bold text-sm sm:text-base tracking-wide uppercase mb-4 shadow-lg"
         >
-          <Sparkles className="w-4 h-4 animate-spin" style={{ animationDuration: '4s' }} />
+          <Heart className="w-4 h-4 fill-white animate-pulse" />
           <span>SHE SAID YES!</span>
-          <Heart className="w-4 h-4 fill-white animate-bounce" />
+          <Heart className="w-4 h-4 fill-white animate-pulse" />
         </motion.div>
 
         {/* Happy mascot */}
@@ -84,14 +90,14 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
         </div>
 
         <h1 className="text-3xl sm:text-5xl font-black text-rose-600 mb-2 font-romantic">
-          It's Official! 🥰
+          It's Official!
         </h1>
         <p className="text-slate-700 text-base sm:text-lg max-w-lg mx-auto font-medium">
-          {config.partnerName} & {config.senderName} are officially the cutest duo!
-          Best decision ever made. ❤️
+          {config.partnerName} and {config.senderName} are officially together.
+          The best decision ever made.
         </p>
 
-        {/* Celebration buttons */}
+        {/* Celebration buttons without sparks */}
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <button
             onClick={() => {
@@ -100,8 +106,16 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
             }}
             className="px-5 py-2.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-semibold text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
           >
-            <Sparkles className="w-4 h-4" />
-            More Confetti! 🎉
+            <Heart className="w-4 h-4 fill-white" />
+            <span>More Confetti!</span>
+          </button>
+
+          <button
+            onClick={handlePrintCertificate}
+            className="px-5 py-2.5 rounded-full bg-white hover:bg-rose-50 text-slate-700 border border-rose-200 font-semibold text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
+          >
+            <Printer className="w-4 h-4 text-rose-500" />
+            <span>Save / Print Certificate</span>
           </button>
 
           <button
@@ -109,7 +123,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
             className="px-5 py-2.5 rounded-full bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 font-semibold text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
           >
             {copiedLink ? <Check className="w-4 h-4 text-green-600" /> : <Share2 className="w-4 h-4" />}
-            {copiedLink ? 'Link Copied!' : 'Share Page'}
+            <span>{copiedLink ? 'Link Copied!' : 'Share Page'}</span>
           </button>
 
           <button
@@ -118,13 +132,16 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
             title="Relive the proposal"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            Replay
+            <span>Replay</span>
           </button>
         </div>
       </div>
 
       {/* Official Certificate of Romance Card */}
-      <div className="glass-card rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-pink-200 relative overflow-hidden bg-gradient-to-b from-white/95 to-rose-50/90">
+      <div
+        id="official-certificate"
+        className="glass-card rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-pink-200 relative overflow-hidden bg-gradient-to-b from-white/95 to-rose-50/90"
+      >
         <div className="flex items-center justify-between border-b border-rose-200 pb-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-500 shadow-inner">
@@ -151,7 +168,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
             <span className="underline decoration-rose-300 underline-offset-4">{config.senderName}</span>
           </div>
           <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-md mx-auto">
-            Have officially agreed to share smiles, laughs, late-night chats, good food,
+            Have officially agreed to share smiles, laughs, late-night talks, good food,
             and an endless adventure together.
           </p>
           <div className="pt-2 flex justify-center items-center gap-6 text-xs text-slate-500">
@@ -174,7 +191,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
       <div className="glass-card rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-pink-200">
         <div className="text-center mb-6">
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 font-romantic mb-1">
-            A Letter For You 💌
+            A Letter For You
           </h2>
           <p className="text-sm text-slate-500">
             {isLetterOpen ? 'Read from my heart' : 'Click the envelope to unseal my letter'}
@@ -203,7 +220,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
             ) : (
               <>
                 <Mail className="w-6 h-6 text-rose-500 shrink-0 animate-bounce" />
-                <span className="font-semibold text-base">Open My Heartfelt Letter 💕</span>
+                <span className="font-semibold text-base">Open My Heartfelt Letter</span>
               </>
             )}
           </motion.button>
@@ -229,7 +246,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
                 </div>
                 <div className="mt-8 text-right font-handwriting text-2xl text-rose-600 font-bold">
                   Forever yours,<br />
-                  <span className="text-3xl">{config.senderName} ❤️</span>
+                  <span className="text-3xl">{config.senderName}</span>
                 </div>
               </motion.div>
             )}
@@ -237,7 +254,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
         </div>
       </div>
 
-      {/* Reasons Why I Adore You */}
+      {/* Reasons Why I Adore You with Lucide Icons */}
       <div className="glass-card rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-pink-200">
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-600 font-semibold text-xs tracking-wider uppercase mb-2">
@@ -256,8 +273,8 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
               whileHover={{ y: -3, scale: 1.01 }}
               className="bg-white/80 rounded-2xl p-4 sm:p-5 border border-rose-100 shadow-sm flex items-start gap-4"
             >
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-2xl shrink-0 shadow-inner">
-                {reason.emoji}
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0 shadow-inner">
+                <DynamicIcon name={reason.icon} className="w-6 h-6" />
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-800 mb-1 font-romantic">
@@ -272,7 +289,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
         </div>
       </div>
 
-      {/* Redeemable Date Coupons */}
+      {/* Redeemable Date Coupons with Lucide Icons */}
       <div className="glass-card rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-pink-200">
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold text-xs tracking-wider uppercase mb-2">
@@ -283,7 +300,7 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
             Your First Date Vouchers
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            Tap to claim any voucher whenever you wish! No expiration date.
+            Tap to claim any voucher whenever you wish. No expiration date.
           </p>
         </div>
 
@@ -303,7 +320,9 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
                 }`}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="text-3xl">{coupon.emoji}</div>
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500 shadow-inner">
+                    <DynamicIcon name={coupon.icon} className="w-5 h-5" />
+                  </div>
                   <div
                     className={`text-xs px-2.5 py-1 rounded-full font-bold flex items-center gap-1 ${
                       isClaimed
@@ -335,4 +354,3 @@ export const CelebrationView: React.FC<CelebrationViewProps> = ({ config, onRese
     </motion.div>
   );
 };
-

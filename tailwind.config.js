@@ -23,7 +23,6 @@ export default {
       animation: {
         'float-slow': 'float 6s ease-in-out infinite',
         'pulse-subtle': 'pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'sparkle': 'sparkle 1.5s ease-in-out infinite alternate',
       },
       keyframes: {
         float: {
@@ -34,10 +33,6 @@ export default {
           '0%, 100%': { transform: 'scale(1)', opacity: '1' },
           '50%': { transform: 'scale(1.05)', opacity: '0.9' },
         },
-        sparkle: {
-          '0%': { opacity: '0.3', transform: 'scale(0.8) rotate(0deg)' },
-          '100%': { opacity: '1', transform: 'scale(1.1) rotate(15deg)' },
-        }
       }
     },
   },

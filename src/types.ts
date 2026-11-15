@@ -4,7 +4,7 @@ export interface StoryMilestone {
   title: string;
   date?: string;
   story: string;
-  emoji: string;
+  icon: string;
 }
 
 export interface MemoryPolaroid {
@@ -15,28 +15,41 @@ export interface MemoryPolaroid {
   secretNote: string;
 }
 
+export interface RomanticQuizOption {
+  text: string;
+  response: string;
+  icon: string;
+}
+
+export interface RomanticQuiz {
+  prompt: string;
+  options: RomanticQuizOption[];
+}
+
 export interface ProposalConfig {
   partnerName: string;
   senderName: string;
   proposalQuestion: string;
   subheading?: string;
+  startDate?: string; // e.g. "2024-01-01" for the live love ticker
   introBadge: string;
   introTitle: string;
   introSubtitle: string;
   storyMilestones: StoryMilestone[];
   polaroids: MemoryPolaroid[];
   confessionParagraphs: string[];
+  quiz?: RomanticQuiz;
   reasons: {
     id: string;
     title: string;
     description: string;
-    emoji: string;
+    icon: string;
   }[];
   dateCoupons: {
     id: string;
     title: string;
     description: string;
-    emoji: string;
+    icon: string;
     color: string;
   }[];
   letterTitle?: string;

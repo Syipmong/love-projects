@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Sparkles, BookOpen } from 'lucide-react';
+import { Heart, BookOpen, Bookmark } from 'lucide-react';
 import { ProposalConfig } from '../../types';
 import { playPopSound } from '../../utils/audio';
 
@@ -26,9 +26,9 @@ export const Chapter1Intro: React.FC<Chapter1IntroProps> = ({ config, onBegin })
       className="w-full max-w-xl mx-auto px-4 z-10 text-center"
     >
       <div className="glass-card rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden border-2 border-rose-200/90">
-        {/* Soft tag */}
+        {/* Soft tag without sparks */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-6 shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 text-rose-500 animate-spin" style={{ animationDuration: '6s' }} />
+          <Bookmark className="w-3.5 h-3.5 text-rose-500" />
           <span>{config.introBadge}</span>
           <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
         </div>
@@ -37,7 +37,7 @@ export const Chapter1Intro: React.FC<Chapter1IntroProps> = ({ config, onBegin })
           /* Sealed Envelope View */
           <div className="py-6 flex flex-col items-center">
             <motion.div
-              whileHover={{ scale: 1.04, rotate: 1 }}
+              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleOpen}
               className="w-64 sm:w-72 bg-gradient-to-br from-rose-100 to-pink-200 p-8 rounded-3xl border-2 border-rose-300 shadow-xl cursor-pointer relative overflow-hidden group"
@@ -53,8 +53,9 @@ export const Chapter1Intro: React.FC<Chapter1IntroProps> = ({ config, onBegin })
                 </p>
               </div>
 
-              <div className="text-[11px] text-rose-600 font-medium">
-                Tap to open this letter 💌
+              <div className="text-[11px] text-rose-600 font-medium flex items-center justify-center gap-1.5">
+                <Bookmark className="w-3 h-3" />
+                <span>Tap to open this letter</span>
               </div>
             </motion.div>
           </div>
@@ -98,4 +99,3 @@ export const Chapter1Intro: React.FC<Chapter1IntroProps> = ({ config, onBegin })
     </motion.div>
   );
 };
-
