@@ -9,14 +9,156 @@ export interface ProposalResponsePayload {
   notes?: string;
 }
 
-export interface ProposalEventPayload {
-  proposal_id?: string;
-  event_type: string;
-  chapter: number;
-  data_json?: Record<string, unknown>;
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
+export interface ProposalItem {
+  id: string;
+  slug: string;
+  partner_name: string;
+  sender_name: string;
+  question: string;
+  created_at: string;
+  latest_answer?: 'yes' | 'no' | null;
+  interaction_count?: string | number;
 }
 
 const API_BASE = '/api';
+const AUTH_TOKEN_KEY = 'love_app_auth_token';
+
+export function getStoredToken(): string | null {
+  return localStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+export function setStoredToken(token: string | null) {
+  if (token) {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+  }
+}
+
+/**
+ * Register account
+ */
+export async function registerUser(email: string, password: string, name?: string): Promise<{ success: boolean; user?: AuthUser; token?: string; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, name })
+    });
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error || 'Registration failed' };
+    setStoredToken(data.token);
+    return { success: true, user: data.user, token: data.token };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Network error';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Login account
+ */
+export async function loginUser(email: string, password: string): Promise<{ success: boolean; user?: AuthUser; token?: string; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error || 'Login failed' };
+    setStoredToken(data.token);
+    return { success: true, user: data.user, token: data.token };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Network error';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Get current profile
+ */
+export async function getCurrentUserProfile(): Promise<AuthUser | null> {
+  const token = getStoredToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) {
+      setStoredToken(null);
+      return null;
+    }
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch all proposals created by authenticated user
+ */
+export async function getUserProposals(): Promise<ProposalItem[]> {
+  const token = getStoredToken();
+  if (!token) return [];
+  try {
+    const res = await fetch(`${API_BASE}/proposals/user/all`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Create a new proposal with unique slug
+ */
+export async function createNewProposal(data: {
+  partner_name: string;
+  sender_name: string;
+  question: string;
+  custom_slug?: string;
+  config_json?: Record<string, unknown>;
+}): Promise<{ success: boolean; proposal?: ProposalItem; shareUrl?: string; error?: string }> {
+  const token = getStoredToken();
+  try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/proposals`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (!res.ok) return { success: false, error: result.error || 'Failed to create proposal' };
+    return { success: true, proposal: result.proposal, shareUrl: result.shareUrl };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Network error';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Fetch proposal by unique slug for partner view
+ */
+export async function getProposalBySlug(slug: string): Promise<any | null> {
+  try {
+    const res = await fetch(`${API_BASE}/proposals/slug/${slug}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Tracks every user interaction in real time
@@ -66,40 +208,15 @@ export async function recordProposalResponse(data: ProposalResponsePayload, prop
 }
 
 /**
- * Fetches dashboard analytics
+ * Fetches dashboard analytics for a proposal
  */
-export async function fetchDashboardData(proposalId: string = 'default') {
+export async function fetchDashboardData(proposalSlugOrId: string = 'default') {
   try {
-    const res = await fetch(`${API_BASE}/dashboard/${proposalId}`);
+    const res = await fetch(`${API_BASE}/dashboard/${proposalSlugOrId}`);
     if (!res.ok) throw new Error('Failed to fetch dashboard');
     return await res.json();
   } catch (err) {
     console.error('Dashboard fetch error:', err);
-    return null;
-  }
-}
-
-/**
- * Creates or updates a proposal
- */
-export async function saveProposal(data: {
-  id?: string;
-  creator_email?: string;
-  creator_name?: string;
-  partner_name: string;
-  sender_name: string;
-  question: string;
-  config_json?: Record<string, unknown>;
-}) {
-  try {
-    const res = await fetch(`${API_BASE}/proposals`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    return await res.json();
-  } catch (err) {
-    console.error('Proposal save error:', err);
     return null;
   }
 }

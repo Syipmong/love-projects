@@ -17,7 +17,7 @@ import { ThemeSelector } from './components/ThemeSelector';
 import { CreatorDashboard } from './components/CreatorDashboard';
 import { fireGrandCelebration } from './utils/confetti';
 import { playCelebrationSound } from './utils/audio';
-import { recordProposalResponse, trackEvent } from './services/api';
+import { recordProposalResponse, trackEvent, getProposalBySlug } from './services/api';
 
 const TOTAL_CHAPTERS = 6;
 
@@ -37,47 +37,64 @@ export const App: React.FC = () => {
 
   // Check URL parameters on mount
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const toParam = params.get('to');
-      const fromParam = params.get('from');
-      const qParam = params.get('q');
-      const stepParam = params.get('ch');
-      const sinceParam = params.get('since');
-      const themeParam = params.get('theme') as AppTheme;
-      const idParam = params.get('id');
+    const initFromUrl = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const slugParam = params.get('p');
+        const toParam = params.get('to');
+        const fromParam = params.get('from');
+        const qParam = params.get('q');
+        const stepParam = params.get('ch');
+        const sinceParam = params.get('since');
+        const themeParam = params.get('theme') as AppTheme;
 
-      if (idParam) {
-        setProposalId(idParam);
-      }
-
-      if (toParam || fromParam || qParam || sinceParam || themeParam) {
-        setConfig((prev) => ({
-          ...prev,
-          partnerName: toParam || prev.partnerName,
-          senderName: fromParam || prev.senderName,
-          proposalQuestion: qParam || prev.proposalQuestion,
-          startDate: sinceParam || prev.startDate,
-          theme: themeParam || prev.theme
-        }));
-      }
-
-      if (themeParam && ['rose', 'champagne', 'lavender'].includes(themeParam)) {
-        setCurrentTheme(themeParam);
-      }
-
-      if (stepParam) {
-        const stepNum = parseInt(stepParam, 10);
-        if (!isNaN(stepNum) && stepNum >= 0 && stepNum < TOTAL_CHAPTERS) {
-          setCurrentChapter(stepNum);
+        // If unique proposal slug provided (e.g. ?p=for-maya-8k2)
+        if (slugParam) {
+          setProposalId(slugParam);
+          const proposal = await getProposalBySlug(slugParam);
+          if (proposal) {
+            setConfig((prev) => ({
+              ...prev,
+              ...(proposal.config_json || {}),
+              partnerName: proposal.partner_name || prev.partnerName,
+              senderName: proposal.sender_name || prev.senderName,
+              proposalQuestion: proposal.question || prev.proposalQuestion
+            }));
+          }
+          trackEvent('page_view', 0, { slug: slugParam }, slugParam);
+          return;
         }
-      }
 
-      // Track initial visit
-      trackEvent('page_view', 0, { to: toParam || config.partnerName }, idParam || 'default');
-    } catch (e) {
-      console.debug('URL params parsing error', e);
-    }
+        if (toParam || fromParam || qParam || sinceParam || themeParam) {
+          setConfig((prev) => ({
+            ...prev,
+            partnerName: toParam || prev.partnerName,
+            senderName: fromParam || prev.senderName,
+            proposalQuestion: qParam || prev.proposalQuestion,
+            startDate: sinceParam || prev.startDate,
+            theme: themeParam || prev.theme
+          }));
+        }
+
+        if (themeParam && ['rose', 'champagne', 'lavender'].includes(themeParam)) {
+          setCurrentTheme(themeParam);
+        }
+
+        if (stepParam) {
+          const stepNum = parseInt(stepParam, 10);
+          if (!isNaN(stepNum) && stepNum >= 0 && stepNum < TOTAL_CHAPTERS) {
+            setCurrentChapter(stepNum);
+          }
+        }
+
+        // Track default initial visit
+        trackEvent('page_view', 0, { to: toParam || config.partnerName }, 'default');
+      } catch (e) {
+        console.debug('URL params parsing error', e);
+      }
+    };
+
+    initFromUrl();
   }, []);
 
   const handleNext = () => {
@@ -134,10 +151,10 @@ export const App: React.FC = () => {
 
   // Determine if she is allowed to proceed to the next chapter based on engagement
   const isNextAllowed = () => {
-    if (currentChapter === 0) return true; // opening envelope triggers onBegin
-    if (currentChapter === 1) return canProceedChapter1; // must view all 4 milestones
-    if (currentChapter === 2) return canProceedChapter2; // must view all 4 polaroid notes
-    if (currentChapter === 3) return canProceedChapter3; // must answer quiz / heart
+    if (currentChapter === 0) return true;
+    if (currentChapter === 1) return canProceedChapter1;
+    if (currentChapter === 2) return canProceedChapter2;
+    if (currentChapter === 3) return canProceedChapter3;
     return true;
   };
 
@@ -175,7 +192,7 @@ export const App: React.FC = () => {
             title="View Live Analytics & Metrics"
           >
             <BarChart3 className="w-3.5 h-3.5 text-rose-600" />
-            <span className="hidden sm:inline">Metrics & Dashboard</span>
+            <span className="hidden sm:inline">Dashboard</span>
           </button>
 
           {/* Theme Selector */}
