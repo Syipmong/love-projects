@@ -16,8 +16,10 @@ import {
   Calendar,
   Camera,
   Eye,
-  KeyRound
+  KeyRound,
+  Search
 } from 'lucide-react';
+import { ImagePickerModal } from './ImagePickerModal';
 import {
   loginUser,
   registerUser,
@@ -61,6 +63,7 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
   // Editor Form State (deep customization of all messages, milestones, polaroids, theme)
   const [editConfig, setEditConfig] = useState<ProposalConfig>(DEFAULT_CONFIG);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [activePickerIndex, setActivePickerIndex] = useState<number | null>(null);
 
   // Analytics State
   const [analyticsData, setAnalyticsData] = useState<any>(null);
@@ -690,50 +693,108 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
                   </div>
                 </div>
 
-                {/* Section C: Chapter 3 Polaroids */}
+                {/* Section C: Chapter 3 Polaroids with Pexels Search */}
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 space-y-4">
-                  <h4 className="text-sm font-bold uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
-                    <Camera className="w-4 h-4" />
-                    <span>Chapter 3: The 4 Memory Polaroids & Secret Notes</span>
-                  </h4>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
+                        <Camera className="w-4 h-4" />
+                        <span>Chapter 3: The 4 Memory Polaroids & Secret Notes</span>
+                      </h4>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Pick photos from Pexels or enter your own romantic pictures
+                      </p>
+                    </div>
+                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {editConfig.polaroids.map((p, idx) => (
-                      <div key={p.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                        <span className="text-[10px] font-bold text-rose-500 uppercase">Polaroid {idx + 1}</span>
-                        <input
-                          type="text"
-                          value={p.title}
-                          onChange={(e) => {
-                            const updated = [...editConfig.polaroids];
-                            updated[idx].title = e.target.value;
-                            setEditConfig({ ...editConfig, polaroids: updated });
-                          }}
-                          placeholder="Card Title"
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800 font-bold"
-                        />
-                        <input
-                          type="text"
-                          value={p.imageUrl}
-                          onChange={(e) => {
-                            const updated = [...editConfig.polaroids];
-                            updated[idx].imageUrl = e.target.value;
-                            setEditConfig({ ...editConfig, polaroids: updated });
-                          }}
-                          placeholder="Image URL"
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
-                        />
-                        <textarea
-                          rows={2}
-                          value={p.secretNote}
-                          onChange={(e) => {
-                            const updated = [...editConfig.polaroids];
-                            updated[idx].secretNote = e.target.value;
-                            setEditConfig({ ...editConfig, polaroids: updated });
-                          }}
-                          placeholder="Secret note revealed when tapped..."
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800 resize-none"
-                        />
+                      <div key={p.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">
+                            Polaroid {idx + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setActivePickerIndex(idx)}
+                            className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all"
+                            title="Search Pexels photos"
+                          >
+                            <Search className="w-3.5 h-3.5" />
+                            <span>Search Photos</span>
+                          </button>
+                        </div>
+
+                        {/* Visual Polaroid Photo Preview */}
+                        <div
+                          onClick={() => setActivePickerIndex(idx)}
+                          className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-200/80 bg-slate-100 cursor-pointer group shadow-2xs"
+                        >
+                          <img
+                            src={p.imageUrl}
+                            alt={p.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src =
+                                'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=600&q=80';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold backdrop-blur-2xs">
+                            <Camera className="w-4 h-4" />
+                            <span>Change Photo</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                            Card Title
+                          </label>
+                          <input
+                            type="text"
+                            value={p.title}
+                            onChange={(e) => {
+                              const updated = [...editConfig.polaroids];
+                              updated[idx].title = e.target.value;
+                              setEditConfig({ ...editConfig, polaroids: updated });
+                            }}
+                            placeholder="e.g. That Unmatched Smile"
+                            className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800 font-bold"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                            Secret Tap Note
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={p.secretNote}
+                            onChange={(e) => {
+                              const updated = [...editConfig.polaroids];
+                              updated[idx].secretNote = e.target.value;
+                              setEditConfig({ ...editConfig, polaroids: updated });
+                            }}
+                            placeholder="Secret note revealed when tapped..."
+                            className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800 resize-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
+                            Image URL (Direct link or selected via search)
+                          </label>
+                          <input
+                            type="text"
+                            value={p.imageUrl}
+                            onChange={(e) => {
+                              const updated = [...editConfig.polaroids];
+                              updated[idx].imageUrl = e.target.value;
+                              setEditConfig({ ...editConfig, polaroids: updated });
+                            }}
+                            placeholder="Image URL"
+                            className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-mono bg-white text-slate-600 truncate"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -914,6 +975,24 @@ export const DashboardStandalone: React.FC<DashboardStandaloneProps> = ({
           </div>
         )}
       </main>
+
+      {/* Pexels Photo Search & Selection Modal */}
+      {activePickerIndex !== null && (
+        <ImagePickerModal
+          isOpen={true}
+          onClose={() => setActivePickerIndex(null)}
+          targetTitle={`Polaroid ${activePickerIndex + 1}: ${editConfig.polaroids[activePickerIndex]?.title || 'Memory'}`}
+          currentImageUrl={editConfig.polaroids[activePickerIndex]?.imageUrl}
+          onSelectImage={(imageUrl) => {
+            const updated = [...editConfig.polaroids];
+            if (updated[activePickerIndex]) {
+              updated[activePickerIndex].imageUrl = imageUrl;
+              setEditConfig({ ...editConfig, polaroids: updated });
+            }
+            setActivePickerIndex(null);
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -220,3 +220,45 @@ export async function fetchDashboardData(proposalSlugOrId: string = 'default') {
     return null;
   }
 }
+
+export interface PexelsPhoto {
+  id: number;
+  width: number;
+  height: number;
+  url: string;
+  imageUrl: string;
+  thumbnailUrl: string;
+  alt: string;
+  photographer: string;
+  photographerUrl: string;
+  avgColor?: string;
+}
+
+/**
+ * Searches Pexels photos via backend proxy for creators to customize their story memories
+ */
+export async function searchPexelsPhotos(
+  query: string,
+  page = 1,
+  perPage = 16
+): Promise<{ success: boolean; photos: PexelsPhoto[]; total_results?: number; error?: string }> {
+  try {
+    const params = new URLSearchParams({
+      q: query.trim() || 'romantic couple',
+      page: page.toString(),
+      per_page: perPage.toString()
+    });
+
+    const res = await fetch(`${API_BASE}/images/search?${params.toString()}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, photos: [], error: err.error || 'Failed to search photos' };
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Network error';
+    return { success: false, photos: [], error: msg };
+  }
+}

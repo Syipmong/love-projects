@@ -6,6 +6,7 @@ import { pool, initDb } from './db.ts';
 import { sendZeptoMail } from './email.ts';
 import { hashPassword, verifyPassword, createSessionToken, validateSessionToken } from './auth.ts';
 import { generate6CharAlphaNumericCode } from './utils.ts';
+import { searchPexelsImages } from './pexels.ts';
 import type { DbUser, DbProposal, DbEvent, DbResponse, DashboardAnalytics } from './types.ts';
 
 dotenv.config();
@@ -405,6 +406,16 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
       };
 
       return sendJson(res, 200, payload);
+    }
+
+    // 12. Pexels Image Search API for Creators
+    if (req.method === 'GET' && pathname === '/api/images/search') {
+      const query = parsedUrl.searchParams.get('q') || parsedUrl.searchParams.get('query') || 'romantic couple';
+      const page = parseInt(parsedUrl.searchParams.get('page') || '1', 10);
+      const perPage = parseInt(parsedUrl.searchParams.get('per_page') || '16', 10);
+
+      const result = await searchPexelsImages(query, page, perPage);
+      return sendJson(res, result.success ? 200 : 500, result);
     }
 
     // Fallthrough 404
