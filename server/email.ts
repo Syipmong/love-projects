@@ -55,3 +55,4 @@ export async function sendZeptoMail({ toEmail, toName, subject, htmlBody }: Emai
     return { success: false, error };
   }
 }
+

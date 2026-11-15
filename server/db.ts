@@ -90,3 +90,4 @@ export async function initDb(): Promise<void> {
     client.release();
   }
 }
+

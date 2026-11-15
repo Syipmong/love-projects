@@ -45,3 +45,4 @@ export interface DashboardAnalytics {
   eventCounts: { event_type: string; count: string }[];
   timeline: DbEvent[];
 }
+

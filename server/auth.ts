@@ -49,3 +49,4 @@ export function validateSessionToken(token: string): { userId: string; email: st
   }
   return { userId: session.userId, email: session.email };
 }
+
