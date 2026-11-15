@@ -111,7 +111,7 @@ export const AnonymousMessageView: React.FC<AnonymousMessageViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-rose-950 text-white flex flex-col justify-between py-6 px-4 selection:bg-rose-500 selection:text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-rose-950 text-white flex flex-col justify-between safe-top-padding safe-bottom-padding px-4 selection:bg-rose-500 selection:text-white">
       {/* Top Bar Branding */}
       <header className="max-w-md mx-auto w-full flex items-center justify-between py-2 mb-4">
         <div className="flex items-center gap-2">

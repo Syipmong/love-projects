@@ -301,7 +301,7 @@ export const App: React.FC = () => {
   // Otherwise, Story Experience View
   return (
     <div
-      className={`relative min-h-screen ${themeClass} flex flex-col justify-between pt-3 sm:pt-6 pb-6 sm:pb-10 px-3 sm:px-6 overflow-x-hidden selection:bg-rose-500 selection:text-white transition-colors duration-500`}
+      className={`relative min-h-screen ${themeClass} flex flex-col justify-between safe-top-padding safe-bottom-padding px-3 sm:px-6 overflow-x-hidden selection:bg-rose-500 selection:text-white transition-colors duration-500`}
     >
       {/* Background Floating Hearts */}
       <FloatingHearts />

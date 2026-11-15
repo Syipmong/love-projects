@@ -73,3 +73,13 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Safe area insets for mobile notched devices */
+.safe-top-padding {
+  padding-top: max(14px, env(safe-area-inset-top, 14px));
+}
+
+.safe-bottom-padding {
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+}
+
